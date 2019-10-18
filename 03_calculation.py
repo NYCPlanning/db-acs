@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import numpy as np
-from multiprocessing import Pool, cpu_count
+from threading import Thread
 from tqdm import tqdm
 import math
 import json
@@ -111,7 +111,7 @@ def calculate(category):
     os.system(f'echo "{category} is done"')
 
 if __name__ == "__main__":
-    # calculate('demo')
-    # calculate('hous')
+    calculate('demo')
+    calculate('hous')
     calculate('econ')
-    # calculate('soci')
+    calculate('soci')
