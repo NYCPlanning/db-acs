@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import numpy as np
 from multiprocessing import Pool, cpu_count
+from tqdm import tqdm
 import math
 import json
 import os
@@ -12,9 +13,8 @@ def get_e(e):
 
 def get_m(m):
     result = math.sqrt(sum(map(lambda x: x**2, m)))
-#     return math.sqrt(sum([i**2 for i in m]))
     return result
- 
+
 def get_c(e, m): 
     if e == 0:
         return ''
@@ -49,27 +49,62 @@ def find_total(variable, stat='E'):
 
 def calculate(category):
     df = pd.read_csv(f'data/{category}_intermediate.csv', index_col=False)
-    
+    dff = df.values
+    all_columns = list(df.columns)
+
     with open(f'data/{category}_meta_lookup.json', 'r') as f:
         meta_lookup = json.load(f)
-    
-    for i in meta_lookup.keys():
+
+    for i in tqdm(meta_lookup.keys()):
         variables = meta_lookup[i]
-        e_variables = list(map(lambda x: f'{x}E', variables))
-        m_variables = list(map(lambda x: f'{x}M', variables))
-        df.loc[:,f'{i}E'] = df.apply(lambda row: get_e(row[e_variables].tolist()), axis=1)
-        df.loc[:,f'{i}M'] = df.apply(lambda row: get_m(row[m_variables].tolist()), axis=1)
-        df.loc[:,f'{i}C'] = df.apply(lambda row: get_c(row[f'{i}E'], row[f'{i}M']), axis=1)
+        e_variables = list(map(lambda x: all_columns.index(f'{x}E'), variables))
+        m_variables = list(map(lambda x: all_columns.index(f'{x}M'), variables))
         total_e = find_total(variables[0], 'E')
         total_m = find_total(variables[0], 'M')
-        df.loc[:,f'{i}P'] = df.apply(lambda row: get_p(row[f'{i}E'],
-                                                    row[total_e]), axis=1)
-        df.loc[:,f'{i}Z'] = df.apply(lambda row: get_z(row[f'{i}E'], 
-                                                    row[f'{i}M'], 
-                                                    row[f'{i}P'], 
-                                                    row[total_e],
-                                                    row[total_m]), axis=1)
-        df.drop(e_variables+m_variables, axis=1)
+
+        df.loc[:,f'{i}E'] = np.apply_along_axis(get_e, 1, dff[:, e_variables])
+        df.loc[:,f'{i}M'] = np.apply_along_axis(get_m, 1, dff[:, m_variables])
+        df.loc[:,f'{i}C'] = df.apply(lambda row: get_c(row[f'{i}E'], row[f'{i}M']), axis=1)
+        
+        if len(variables) == 1 and f'{variables[0]}PE' in df.columns:
+            '''
+            If for some of the records PE is already calculated, 
+            then take them directly and calculate PE for the rest
+            '''
+            df.loc[:,f'{i}P'] \
+                = df.loc[df[f'{variables[0]}PE'].isna(), :]\
+                    .apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)    
+            
+            df.loc[:,f'{i}P']\
+                = df.loc[~df[f'{variables[0]}PE'].isna(), :]\
+                    .loc[:,f'{variables[0]}PE']
+        else: 
+            df.loc[:,f'{i}P']\
+                = df.apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)
+
+        if len(variables) == 1 and f'{variables[0]}PM' in df.columns:
+            '''
+            If for some of the records PM is already calculated, 
+            then take them directly and calculate PM for the rest
+            '''
+            df.loc[:,f'{i}Z']\
+                = df.loc[df[f'{variables[0]}PM'].isna(), :]\
+                    .apply(lambda row: get_z(row[f'{i}E'], 
+                                            row[f'{i}M'], 
+                                            row[f'{i}P'], 
+                                            row[total_e],
+                                            row[total_m]), axis=1)
+
+            df.loc[:,f'{i}Z']\
+                = df.loc[~df[f'{variables[0]}PM'].isna(), :]\
+                    .loc[:,f'{variables[0]}PM']
+        else:
+            df.loc[:,f'{i}Z']\
+                = df.apply(lambda row: get_z(row[f'{i}E'], 
+                                            row[f'{i}M'], 
+                                            row[f'{i}P'], 
+                                            row[total_e],
+                                            row[total_m]), axis=1)
 
     output_cols = sum([[i+'E', i+'M', i+'P', i+'Z', i+'C'] for i in meta_lookup.keys()], []) + ['GEO_ID', 'NAME']
     df[output_cols].to_csv(f'data/{category}_final.csv', index=False)

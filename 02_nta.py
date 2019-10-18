@@ -38,13 +38,13 @@ if __name__ == "__main__":
     demo_intermediate.to_csv('data/demo_intermediate.csv', index=False)
 
     econ = pd.read_csv('data/econ.csv', index_col=False)
-    econ_intermediate = calculate_nta(demo)
+    econ_intermediate = calculate_nta(econ)
     econ_intermediate.to_csv('data/econ_intermediate.csv', index=False)
 
     hous = pd.read_csv('data/hous.csv', index_col=False)
-    hous_intermediate = calculate_nta(demo)
+    hous_intermediate = calculate_nta(hous)
     hous_intermediate.to_csv('data/hous_intermediate.csv', index=False)
     
     soci = pd.read_csv('data/soci.csv', index_col=False)
-    soci_intermediate = calculate_nta(demo)
+    soci_intermediate = calculate_nta(soci)
     soci_intermediate.to_csv('data/soci_intermediate.csv', index=False)
