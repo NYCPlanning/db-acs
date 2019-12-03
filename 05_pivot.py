@@ -3,15 +3,13 @@ import json
 import numpy as np
 
 def pivot_output(category):
-    df = pd.read_csv(f'data/{category}_final.csv', index_col=False)
-    with open(f'data/{category}_meta_lookup.json', 'r') as f:
-        meta_lookup = json.load(f)
-    var = list(meta_lookup.keys())
+    df = pd.read_csv(f'data/{category}_final1.csv', index_col=False)
+    var = set(list(map(lambda x: x[:-1], df.columns)))
 
     r = []
 
     for i in var: 
-        cols = ['GEO_ID', 'NAME', i+'C', i+'E', i+'M', i+'P', i+'Z']
+        cols = ['geoid', 'name', i+'c', i+'e', i+'m', i+'p', i+'z']
         dff = df.loc[:, cols]
         dff.columns=['geoid', 'geoname', 'c', 'e', 'm', 'p', 'z']
         dff['variable'] = i
