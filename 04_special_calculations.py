@@ -219,6 +219,75 @@ mdrms = {'rms1': [0, 1499],
  'rms8': [7500, 8499],
  'rms9pl': [8500, 9000]}
 
+fips_lookup = {
+    '05': '2',
+    '47': '3',
+    '61': '1',
+    '81': '4',
+    '85': '5',
+}
+
+boro_lookup = {
+    '1': 'Manhattan',
+    '2': 'Bronx', 
+    '3': 'Brooklyn',
+    '4': 'Queens', 
+    '5': 'Staten Island'
+}
+
+def format_geoid(geoid):
+    # NTA
+    if geoid[:2] in ['MN', 'QN', 'BX', 'BK', 'SI']: 
+        return geoid
+    # Community District (PUMA)
+    elif geoid[:2] == '79': 
+        return geoid[-4:]
+    # Census tract (CT2010)
+    elif geoid[:2] == '14':
+        boro = fips_lookup.get(geoid[-8:-6])
+        return boro + geoid[-6:]
+    # Boro
+    elif geoid[:2] == '05': 
+        return fips_lookup.get(geoid[-2:])
+    # City 
+    elif geoid[:2] == '16':
+        return 0
+
+def assign_geotype(geoid): 
+    # NTA
+    if geoid[:2] in ['MN', 'QN', 'BX', 'BK', 'SI']: 
+        return 'NTA2010'
+    # Community District (PUMA)
+    elif geoid[:2] == '79': 
+        return 'PUMA2010'
+    # Census tract (CT2010)
+    elif geoid[:2] == '14':
+        return 'CT2010'
+    # Boro
+    elif geoid[:2] == '05': 
+        return 'Boro2010'
+    # City 
+    elif geoid[:2] == '16':
+        return 'City2010'
+
+def assign_geogname(geotype, name, geoid):
+    if geotype == 'Boro2010': 
+        return boro_lookup.get(geoid)
+    elif geotype == 'City2010': 
+        return 'New York City'
+    elif geotype == 'CT2010': 
+        return NTA.nta_code[NTA.boroct == geoid].to_list()[0]
+    elif geotype == 'PUMA2010': 
+        return name
+    elif geotype == 'NTA2010': 
+        return NTA.nta_name[NTA.nta_code == geoid].to_list()[0]
+
+def get_c(e, m): 
+    if e == 0:
+        return np.nan
+    else:
+        return m/1.645/e*100
+
 def get_median(buckets, row):
     ordered = list(buckets.keys())
     orderedE = [i+'e' for i in ordered]
@@ -254,89 +323,116 @@ def get_median_moe(buckets, row, DF=1.1):
         cumm_dist = list(np.cumsum(row[orderedE])/B*100)
 
         se_50 = DF*(((93/(7*B))*2500))**0.5
-
-        p_lower = 50 - se_50
-        p_upper = 50 + se_50
         
-        try:
-            lower_bin = max([cumm_dist.index(i) for i in cumm_dist if i<p_lower])
-            upper_bin = max([cumm_dist.index(i) for i in cumm_dist if i<p_upper])
-        except: 
-            print(f"{row['name']} se50 {round(se_50)} plower {round(p_lower)} phigher {round(p_upper)}")
+        if se_50 >= 50:
             return np.nan
-        if lower_bin == upper_bin:
-            A1 = min(buckets[ordered[lower_bin]])
-            A2 = min(buckets[ordered[lower_bin+1]])
-            C1 = cumm_dist[lower_bin-1]
-            C2 = cumm_dist[lower_bin]
-            lowerbound = (p_lower - C1)*(A2-A1)/(C2-C1) + A1 
-            upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
+        else: 
+            p_lower = 50 - se_50
+            p_upper = 50 + se_50
+            
+            lower_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_lower])
+            upper_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_upper])
+            
+            if lower_bin >= len(ordered)-1 or upper_bin >= len(ordered)-1:
+                return np.nan
+            else:
+                if lower_bin == upper_bin:
+                    A1 = min(buckets[ordered[lower_bin]])
+                    A2 = min(buckets[ordered[lower_bin+1]])
+                    C1 = cumm_dist[lower_bin-1]
+                    C2 = cumm_dist[lower_bin]
+                    lowerbound = (p_lower - C1)*(A2-A1)/(C2-C1) + A1 
+                    upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
 
-        else:
-            A1_l = min(buckets[ordered[lower_bin]])
-            A2_l = min(buckets[ordered[lower_bin+1]])
-            C1_l = cumm_dist[lower_bin-1]
-            C2_l = cumm_dist[lower_bin]
+                else:
+                    A1_l = min(buckets[ordered[lower_bin]])
+                    A2_l = min(buckets[ordered[lower_bin+1]])
+                    C1_l = cumm_dist[lower_bin-1]
+                    C2_l = cumm_dist[lower_bin]
 
-            A1_u = min(buckets[ordered[upper_bin]])
-            A2_u = min(buckets[ordered[upper_bin+1]])
-            C1_u = cumm_dist[upper_bin-1]
-            C2_u = cumm_dist[upper_bin]
+                    A1_u = min(buckets[ordered[upper_bin]])
+                    A2_u = min(buckets[ordered[upper_bin+1]])
+                    C1_u = cumm_dist[upper_bin-1]
+                    C2_u = cumm_dist[upper_bin]
 
-            lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
-            upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
+                    lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
+                    upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
 
-        return (upperbound - lowerbound)*1.645/2
+                return (upperbound - lowerbound)*1.645/2
 
 if __name__ == "__main__":
-        
+    NTA = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx', 
+                   skiprows=4, dtype=str,
+                  names=['borough', 'fips', 'borough_code', 'tract', 'puma', 'nta_code', 'nta_name'])
+    NTA['boroct']=NTA['borough_code'] + NTA['tract']   
+    
     # Demographics
     df = pd.read_csv('data/demo_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+
     df['mdagee'] = df.apply(lambda row: get_median(mdage, row), axis=1)
     df['mdagem'] = df.apply(lambda row: get_median_moe(mdage, row, DF=design_factor['mdage']), axis=1)
+    df['mdagec'] = df.apply(lambda row: get_c(row['mdagee'], row['mdagem']), axis=1)
+    df['mdagez'] = np.nan
+    df['mdagep'] = np.nan
     df.to_csv('data/demo_final1.csv', index=False)
 
     # Economics
     df = pd.read_csv('data/econ_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+
     df['mdhhince'] = df.apply(lambda row: get_median(mdhhinc, row), axis=1)
     df['mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, DF=design_factor['mdhhinc']), axis=1)
+    df['mdhhincc'] = df.apply(lambda row: get_c(row['mdhhince'], row['mdhhincm']), axis=1)
+
     df['mdhhincz'] = np.nan
     df['mdhhincp'] = np.nan
 
     df['mdfamince'] = df.apply(lambda row: get_median(mdfaminc, row), axis=1)
     df['mdfamincm'] = df.apply(lambda row: get_median_moe(mdfaminc, row, DF=design_factor['mdfaminc']), axis=1)
+    df['mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
     df['mdfamincz'] = np.nan
     df['mdfamincp'] = np.nan
 
     df['mdnfince'] = df.apply(lambda row: get_median(mdnfinc, row), axis=1)
     df['mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, DF=design_factor['mdnfinc']), axis=1)
+    df['mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
     df['mdnfincz'] = np.nan
     df['mdnfincp'] = np.nan
 
     df['mdemftwrke'] = df.apply(lambda row: get_median(mdemftwrk, row), axis=1)
     df['mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, DF=design_factor['mdemftwrk']), axis=1)
+    df['mdemftwrkc'] = df.apply(lambda row: get_c(row['mdemftwrke'], row['mdemftwrkm']), axis=1)
     df['mdemftwrkz'] = np.nan
     df['mdemftwrkp'] = np.nan
 
     df['mdefftwrke'] = df.apply(lambda row: get_median(mdefftwrk, row), axis=1)
     df['mdefftwrkm'] = df.apply(lambda row: get_median_moe(mdefftwrk, row, DF=design_factor['mdefftwrk']), axis=1)
+    df['mdefftwrkc'] = df.apply(lambda row: get_c(row['mdefftwrke'], row['mdefftwrkm']), axis=1)
     df['mdefftwrkz'] = np.nan
     df['mdefftwrkp'] = np.nan
 
     df['percapince'] = df['agip15ple']/df['pop_6e']
     df['percapincm'] = np.sqrt(df['agip15plm']**2 + (df['agip15ple']*df['pop_6m']/df['pop_6e'])**2)*df['pop_6e']
+    df['percapincc'] = df.apply(lambda row: get_c(row['percapince'], row['percapincm']), axis=1)
     df['percapincz'] = np.nan
     df['percapincp'] = np.nan
 
     df['mntrvtme'] = df['agttme']/(df['wrkr16ple']-df['cw_wrkdhme'])
     df['mntrvtmm'] = 1/df['wrkrnothme']*np.sqrt(df['agttmm']**2+(df['agttme']*df['wrkrnothmm']/df['wrkrnothme'])**2)
+    df['mntrvtmc'] = df.apply(lambda row: get_c(row['mntrvtme'], row['mntrvtmm']), axis=1)
     df['mntrvtmz'] = np.nan
     df['mntrvtmp'] = np.nan
 
     df['mnhhince'] = df['aghhince']/df['hh2e']
     df['mnhhincm'] = 1/df['hh5e']*np.sqrt(df['aghhincm']**2+(df['aghhince']*df['hh5m']/df['hh5e'])**2)
+    df['mnhhincc'] = df.apply(lambda row: get_c(row['mnhhince'], row['mnhhincm']), axis=1)
     df['mnhhincz'] = np.nan
     df['mnhhincp'] = np.nan
 
@@ -360,30 +456,38 @@ if __name__ == "__main__":
 
     df = pd.read_csv('data/hous_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
-
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+    
     df['hovacrte'] = 100*df['hovacue']/df['vacsalee']
     df['hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
+    df['hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
     df['hovacrtz'] = np.nan
     df['hovacrtp'] = np.nan
 
     df['rntvacrte'] = 100*df['vacrnte']/df['rntvacue']
     df['hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
+    df['hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
     df['rntvacrtz'] = np.nan
     df['rntvacrtp'] = np.nan
 
     df['avghhsooce'] = df['popoochue']/df['oochu1e']
     df['avghhsoocm'] = (df['popoochum']**2 + (df['popoochue']*df['oochu4m']/df['oochu4e'])**2)**0.5/df['oochu4e']
+    df['avghhsoocc'] = df.apply(lambda row: get_c(row['avghhsooce'], row['avghhsoocm']), axis=1)
     df['avghhsoocz'] = np.nan
     df['avghhsoocp'] = np.nan
 
     df['avghhsroce'] = df['poprtochue']/df['rochu1e']
     df['avghhsrocm'] = (df['poprtochum']**2 + (df['poprtochue']*df['rochu2m']/df['rochu2e'])**2)**0.5/df['rochu2e']
+    df['avghhsrocc'] = df.apply(lambda row: get_c(row['avghhsroce'], row['avghhsrocm']), axis=1)
     df['avghhsrocz'] = np.nan
     df['avghhsrocp'] = np.nan
 
 
     df['mdrmse'] = df.apply(lambda row: get_median(mdrms, row), axis=1)
     df['mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, DF=design_factor['mdrms']), axis=1)
+    df['mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
     df['mdrmsz'] = np.nan
     df['mdrmsp'] = np.nan
 
@@ -392,14 +496,19 @@ if __name__ == "__main__":
     # Social
     df = pd.read_csv('data/soci_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
     df['avghhsze'] = df['hhpop1e']/df['hh1e']
     df['avghhszm'] = (df['hhpop1m']**2 + (df['hh4m']*df['hhpop1e']/df['hh4e'])**2)**0.5/df['hh4e']
+    df['avghhszc'] = df.apply(lambda row: get_c(row['avghhsze'], row['avghhszm']), axis=1)
     df['avghhszz'] = np.nan
     df['avghhszp'] = np.nan
 
     df['avgfmsze'] = df['popinfmse']/df['fam1e']
     df['avgfmszm'] = (df['popinfmsm']**2 + (df['fam3m']*df['popinfmse']/df['fam3e'])**2)**0.5/df['fam3e']
+    df['avgfmszc'] = df.apply(lambda row: get_c(row['avgfmsze'], row['avgfmszm']), axis=1)
     df['avgfmszz'] = np.nan
     df['avgfmszp'] = np.nan
     df.to_csv('data/soci_final1.csv', index=False)
