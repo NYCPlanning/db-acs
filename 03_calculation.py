@@ -17,23 +17,23 @@ def get_m(m):
 
 def get_c(e, m): 
     if e == 0:
-        return ''
+        return np.nan
     else:
         return m/1.645/e*100
 
 def get_p(e, agg_e):
     if agg_e == 0: 
-        return ''
+        return np.nan
     else:
         return e/agg_e*100
 
 def get_z(e, m, p, agg_e, agg_m):
     if p == 0:
-        return ''
+        return np.nan
     elif p == 100:
-        return ''
+        return  np.nan
     elif agg_e == 0:
-        return ''
+        return  np.nan
     elif m**2 - (e*agg_m/agg_e)**2 <0:
         return math.sqrt(m**2 + (e*agg_m/agg_e)**2)/agg_e*100
     else: 

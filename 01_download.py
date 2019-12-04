@@ -56,14 +56,14 @@ def get_puma(group, endpoint):
 
 
 def get_borough(group, endpoint):
-    url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=county:*&in=state:36&key={api_key}'
-    try:
+    frames = []
+    for county in ['081', '085', '005', '047', '061']:
+        url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=county:{county}&in=state:36&key={api_key}'
         resp = requests.request('GET', url).content
         df = pd.DataFrame(json.loads(resp)[1:])
         df.columns = json.loads(resp)[0]
-        return df
-    except: 
-        print(url)
+        frames.append(df)
+    return pd.concat(frames)
 
 def get_city(group,endpoint):
     url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=place:51000&in=state:36&key={api_key}'
@@ -98,8 +98,8 @@ hous_df = create_big_table(hous_groups)
 soci_df = create_big_table(soci_groups)
 econ_df = create_big_table(econ_groups)
 
-demo_df.to_csv('demo.csv', index=False)
-hous_df.to_csv('hous.csv', index=False)
-soci_df.to_csv('soci.csv', index=False)
-econ_df.to_csv('econ.csv', index=False)
+demo_df.to_csv('data/demo.csv', index=False)
+# hous_df.to_csv('data/hous.csv', index=False)
+# soci_df.to_csv('data/soci.csv', index=False)
+# econ_df.to_csv('data/econ.csv', index=False)
 

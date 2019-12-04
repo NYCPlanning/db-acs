@@ -1,5 +1,6 @@
 import pandas as pd
 import math
+import numpy as np
 
 def calculate_nta(df):
     nta = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx',
@@ -21,7 +22,10 @@ def calculate_nta(df):
         record['nta'] = i
         for v in var:
             e = dfff[f'{v}E'].sum()
-            m = math.sqrt(dfff[f'{v}M'].apply(lambda x: x**2).sum())
+            if f'{v}M' not in dfff.columns:
+                m = np.nan
+            else:
+                m = math.sqrt(dfff[f'{v}M'].apply(lambda x: x**2).sum())
             record[f'{v}E'] = e
             record[f'{v}M'] = m
         results.append(record)
@@ -37,6 +41,7 @@ if __name__ == "__main__":
     demo_intermediate = calculate_nta(demo)
     demo_intermediate.to_csv('data/demo_intermediate.csv', index=False)
 
+    # B00002_001M doesn't exist anymore ...
     econ = pd.read_csv('data/econ.csv', index_col=False)
     econ_intermediate = calculate_nta(econ)
     econ_intermediate.to_csv('data/econ_intermediate.csv', index=False)

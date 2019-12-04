@@ -390,7 +390,6 @@ if __name__ == "__main__":
     df['mdhhince'] = df.apply(lambda row: get_median(mdhhinc, row), axis=1)
     df['mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, DF=design_factor['mdhhinc']), axis=1)
     df['mdhhincc'] = df.apply(lambda row: get_c(row['mdhhince'], row['mdhhincm']), axis=1)
-
     df['mdhhincz'] = np.nan
     df['mdhhincp'] = np.nan
 
@@ -438,6 +437,7 @@ if __name__ == "__main__":
 
     df['cni1864_2z'] = np.nan
     df['cni1864_2p'] = np.nan
+
     df['cvlf18t64p'] = np.nan
     df['cvlf18t64z'] = np.nan
 

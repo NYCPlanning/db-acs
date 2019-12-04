@@ -19,6 +19,7 @@ def pivot_output(category):
         r.append(dff)
 
     result = pd.concat(r)
+    result = result[['geotype', 'geogname', 'geoid', 'dataset', 'variable', 'c', 'e', 'm', 'p', 'z']]
     result.to_csv(f'data/{category}_final_pivoted.csv', index=False)
 
 if __name__ == "__main__":
