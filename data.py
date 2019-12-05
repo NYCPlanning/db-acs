@@ -211,19 +211,3 @@ mdrms = {'rms1': [0, 1499],
  'rms7': [6500, 7499],
  'rms8': [7500, 8499],
  'rms9pl': [8500, 9000]}
-
-fips_lookup = {
-    '05': '2',
-    '47': '3',
-    '61': '1',
-    '81': '4',
-    '85': '5',
-}
-
-boro_lookup = {
-    '1': 'Manhattan',
-    '2': 'Bronx', 
-    '3': 'Brooklyn',
-    '4': 'Queens', 
-    '5': 'Staten Island'
-}

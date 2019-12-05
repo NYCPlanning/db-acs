@@ -1,4 +1,19 @@
+import pandas as pd 
+from pathlib import Path
+
+def get_c(e, m): 
+    if e == 0:
+        return np.nan
+    else:
+        return m/1.645/e*100
+        
 def format_geoid(geoid):
+    fips_lookup = {
+        '05': '2',
+        '47': '3',
+        '61': '1',
+        '81': '4',
+        '85': '5',}
     # NTA
     if geoid[:2] in ['MN', 'QN', 'BX', 'BK', 'SI']: 
         return geoid
@@ -34,6 +49,12 @@ def assign_geotype(geoid):
         return 'City2010'
 
 def assign_geogname(geotype, name, geoid):
+    boro_lookup = {
+        '1': 'Manhattan',
+        '2': 'Bronx', 
+        '3': 'Brooklyn',
+        '4': 'Queens', 
+        '5': 'Staten Island'}
     if geotype == 'Boro2010': 
         return boro_lookup.get(geoid)
     elif geotype == 'City2010': 
@@ -45,7 +66,7 @@ def assign_geogname(geotype, name, geoid):
     elif geotype == 'NTA2010': 
         return NTA.nta_name[NTA.nta_code == geoid].to_list()[0]
 
-NTA = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx', 
+NTA = pd.read_excel(Path(__file__).parent/'data/nyc2010census_tabulation_equiv.xlsx', 
                    skiprows=4, dtype=str,
                   names=['borough', 'fips', 'borough_code', 'tract', 'puma', 'nta_code', 'nta_name'])
 NTA['boroct']=NTA['borough_code'] + NTA['tract']   
