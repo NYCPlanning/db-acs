@@ -30,8 +30,6 @@ def pivot_output(category):
         dff.loc[:,'c'] = dff['c'].round(1)
         dff.loc[:,'e'] = dff['e'].round(rounding.get(i, 0))
         dff.loc[:,'m'] = dff['m'].round(rounding.get(i, 0))
-        dff.loc[:,'e'] = dff['e'].round(0)
-        dff.loc[:,'m'] = dff['m'].round(0)
         dff.loc[:,'p'] = dff['p'].round(1)
         dff.loc[:,'z'] = dff['z'].round(1)
         dff['dataset'] = 'Y2013-2017'
