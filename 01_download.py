@@ -99,7 +99,7 @@ soci_df = create_big_table(soci_groups)
 econ_df = create_big_table(econ_groups)
 
 demo_df.to_csv('data/demo.csv', index=False)
-# hous_df.to_csv('data/hous.csv', index=False)
-# soci_df.to_csv('data/soci.csv', index=False)
-# econ_df.to_csv('data/econ.csv', index=False)
+hous_df.to_csv('data/hous.csv', index=False)
+soci_df.to_csv('data/soci.csv', index=False)
+econ_df.to_csv('data/econ.csv', index=False)
 
