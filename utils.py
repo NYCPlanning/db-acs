@@ -1,5 +1,6 @@
 import pandas as pd 
 from pathlib import Path
+import numpy as np
 
 def get_c(e, m): 
     if e == 0:

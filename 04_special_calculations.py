@@ -104,32 +104,32 @@ if __name__ == "__main__":
     df['geotype'] = df['geo_id'].apply(assign_geotype)
     df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
-    df['mdhhince'] = df.apply(lambda row: get_median(mdhhinc, row), axis=1)
-    df['mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, DF=design_factor['mdhhinc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdhhince'] = df.apply(lambda row: get_median(mdhhinc, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, DF=design_factor['mdhhinc']), axis=1)
     df['mdhhincc'] = df.apply(lambda row: get_c(row['mdhhince'], row['mdhhincm']), axis=1)
     df['mdhhincz'] = np.nan
     df['mdhhincp'] = np.nan
 
-    df['mdfamince'] = df.apply(lambda row: get_median(mdfaminc, row), axis=1)
-    df['mdfamincm'] = df.apply(lambda row: get_median_moe(mdfaminc, row, DF=design_factor['mdfaminc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdfamince'] = df.apply(lambda row: get_median(mdfaminc, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdfamincm'] = df.apply(lambda row: get_median_moe(mdfaminc, row, DF=design_factor['mdfaminc']), axis=1)
     df['mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
     df['mdfamincz'] = np.nan
     df['mdfamincp'] = np.nan
 
-    df['mdnfince'] = df.apply(lambda row: get_median(mdnfinc, row), axis=1)
-    df['mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, DF=design_factor['mdnfinc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdnfince'] = df.apply(lambda row: get_median(mdnfinc, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, DF=design_factor['mdnfinc']), axis=1)
     df['mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
     df['mdnfincz'] = np.nan
     df['mdnfincp'] = np.nan
 
-    df['mdemftwrke'] = df.apply(lambda row: get_median(mdemftwrk, row), axis=1)
-    df['mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, DF=design_factor['mdemftwrk']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdemftwrke'] = df.apply(lambda row: get_median(mdemftwrk, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, DF=design_factor['mdemftwrk']), axis=1)
     df['mdemftwrkc'] = df.apply(lambda row: get_c(row['mdemftwrke'], row['mdemftwrkm']), axis=1)
     df['mdemftwrkz'] = np.nan
     df['mdemftwrkp'] = np.nan
 
-    df['mdefftwrke'] = df.apply(lambda row: get_median(mdefftwrk, row), axis=1)
-    df['mdefftwrkm'] = df.apply(lambda row: get_median_moe(mdefftwrk, row, DF=design_factor['mdefftwrk']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdefftwrke'] = df.apply(lambda row: get_median(mdefftwrk, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdefftwrkm'] = df.apply(lambda row: get_median_moe(mdefftwrk, row, DF=design_factor['mdefftwrk']), axis=1)
     df['mdefftwrkc'] = df.apply(lambda row: get_c(row['mdefftwrke'], row['mdefftwrkm']), axis=1)
     df['mdefftwrkz'] = np.nan
     df['mdefftwrkp'] = np.nan
@@ -185,8 +185,8 @@ if __name__ == "__main__":
     df['hovacrtp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','rntvacrte'] = 100*df['vacrnte']/df['rntvacue']
-    df.loc[df.geotype=='NTA2010','hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
-    df.loc[df.geotype=='NTA2010','hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
+    df.loc[df.geotype=='NTA2010','rntvacrtm'] = df.apply(lambda row: hovacrtm(row['rntvacue'], row['vacrnte'], row['vacrntm'], row['rntvacum']), axis=1)
+    df.loc[df.geotype=='NTA2010','rntvacrtc'] = df.apply(lambda row: get_c(row['rntvacrte'], row['rntvacrtm']), axis=1)
     df['rntvacrtz'] = np.nan
     df['rntvacrtp'] = np.nan
 
@@ -205,10 +205,21 @@ if __name__ == "__main__":
 
     df.loc[df.geotype=='NTA2010','mdrmse'] = df.apply(lambda row: get_median(mdrms, row), axis=1)
     df.loc[df.geotype=='NTA2010','mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, DF=design_factor['mdrms']), axis=1)
-    df.loc[df.geotype=='NTA2010','mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
+    df['mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
     df['mdrmsz'] = np.nan
     df['mdrmsp'] = np.nan
 
+    df.loc[df.geotype=='NTA2010','mdgre'] = df.apply(lambda row: get_median(mdgr, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdgrm'] = df.apply(lambda row: get_median_moe(mdgr, row, DF=design_factor['mdgr']), axis=1)
+    df['mdgrc'] = df.apply(lambda row: get_c(row['mdgre'], row['mdgrm']), axis=1)
+    df['mdgrz'] = np.nan
+    df['mdgrp'] = np.nan
+
+    df.loc[df.geotype=='NTA2010','mdvle'] = df.apply(lambda row: get_median(mdvl, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdvlm'] = df.apply(lambda row: get_median_moe(mdvl, row, DF=design_factor['mdvl']), axis=1)
+    df['mdvlc'] = df.apply(lambda row: get_c(row['mdvle'], row['mdvlm']), axis=1)
+    df['mdvlz'] = np.nan
+    df['mdvlp'] = np.nan
     df.to_csv('data/hous_final1.csv', index=False)
 
     # Social
