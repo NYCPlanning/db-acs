@@ -21,12 +21,13 @@ def pivot_output(category):
     var = set(list(map(lambda x: x[:-1], cols)))
 
     r = []
-
+    with open(f'data/{category}_variable_lookup.json', 'r') as f:
+            variable_lookup = json.load(f)
     for i in var:
         cols = ['geotype', 'geogname', 'geoid', i+'c', i+'e', i+'m', i+'p', i+'z']
         dff = df.loc[:, cols]
         dff.columns=['geotype', 'geogname', 'geoid', 'c', 'e', 'm', 'p', 'z']
-        dff['variable'] = i
+        dff['variable'] = variable_lookup.get(i, i)
         dff.loc[:,'c'] = dff['c'].round(1)
         dff.loc[:,'e'] = dff['e'].round(rounding.get(i, 0))
         dff.loc[:,'m'] = dff['m'].round(rounding.get(i, 0))

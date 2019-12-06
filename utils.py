@@ -1,8 +1,11 @@
 import pandas as pd 
 from pathlib import Path
 import numpy as np
+from sqlalchemy import create_engine
+from urllib.parse import urlparse
+import psycopg2
 
-def get_c(e, m): 
+def get_c(e, m):
     if e == 0:
         return np.nan
     else:
@@ -71,3 +74,18 @@ NTA = pd.read_excel(Path(__file__).parent/'data/nyc2010census_tabulation_equiv.x
                    skiprows=4, dtype=str,
                   names=['borough', 'fips', 'borough_code', 'tract', 'puma', 'nta_code', 'nta_name'])
 NTA['boroct']=NTA['borough_code'] + NTA['tract']   
+
+def psycopg2_connect(url):
+    result = urlparse(str(url))
+    username = result.username
+    password = result.password
+    database = result.path[1:]
+    hostname = result.hostname
+    port = result.port
+    connection = psycopg2.connect(
+        database = database,
+        user = username,
+        password = password,
+        host = hostname, 
+        port = port)
+    return connection
