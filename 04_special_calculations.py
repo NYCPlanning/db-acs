@@ -122,6 +122,12 @@ if __name__ == "__main__":
     df['mdnfincz'] = np.nan
     df['mdnfincp'] = np.nan
 
+    df.loc[df.geotype=='NTA2010','mdewrke'] = df.apply(lambda row: get_median(mdewrk, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdewrkm'] = df.apply(lambda row: get_median_moe(mdewrk, row, DF=design_factor['mdewrk']), axis=1)
+    df['mdewrkc'] = df.apply(lambda row: get_c(row['mdewrke'], row['mdewrkm']), axis=1)
+    df['mdewrkz'] = np.nan
+    df['mdewrkp'] = np.nan
+
     df.loc[df.geotype=='NTA2010','mdemftwrke'] = df.apply(lambda row: get_median(mdemftwrk, row), axis=1)
     df.loc[df.geotype=='NTA2010','mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, DF=design_factor['mdemftwrk']), axis=1)
     df['mdemftwrkc'] = df.apply(lambda row: get_c(row['mdemftwrke'], row['mdemftwrkm']), axis=1)
