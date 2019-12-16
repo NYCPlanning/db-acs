@@ -3,6 +3,7 @@ from utils import psycopg2_connect
 from sqlalchemy import create_engine
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
+from data import VERSION
 import io
 import os
 
@@ -16,10 +17,10 @@ def export_pff(name, path, con):
     df.to_csv(str_buffer, sep='\t', header=True, index=False)
     str_buffer.seek(0)
 
-    con.execute('CREATE SCHEMA IF NOT EXISTS staging;')
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS pff_{name};')
     con.execute(f'''
-        DROP TABLE IF EXISTS staging.{name};
-        CREATE TABLE staging.{name} (
+        DROP TABLE IF EXISTS pff_{name}."{VERSION}";
+        CREATE TABLE pff_{name}."{VERSION}" (
             geotype text,
             geogname text,
             geoid text,
@@ -33,10 +34,7 @@ def export_pff(name, path, con):
         );
     ''')
 
-    db_cursor.copy_expert(f"COPY staging.{name} FROM STDIN WITH NULL AS '' DELIMITER E'\t' CSV HEADER", str_buffer)
-    # con.execute(f'''
-    #     DROP INDEX IF EXISTS new_{name}_geoid;
-    #     CREATE INDEX new_{name}_geoid ON staging.{name}(geoid text_ops);''')
+    db_cursor.copy_expert(f'''COPY pff_{name}."{VERSION}" FROM STDIN WITH NULL AS '' DELIMITER E'\t' CSV HEADER''', str_buffer)
     db_cursor.connection.commit()
     str_buffer.close()
     db_cursor.close()
@@ -44,9 +42,14 @@ def export_pff(name, path, con):
 
 if __name__ == "__main__":
     load_dotenv(Path(__file__).parent/'.env')
-    con = create_engine(os.getenv('BUILD_ENGINE'))
+    con = create_engine(os.getenv('EDM_DATA'))
 
     export_pff('demographic', 'data/demo_final_pivoted.csv', con)
     export_pff('economic', 'data/econ_final_pivoted.csv', con)
     export_pff('social', 'data/soci_final_pivoted.csv', con)
     export_pff('housing', 'data/hous_final_pivoted.csv', con)
+
+    con.execute(f'''
+    INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
+    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2006-2010" 
+    where variable not in (select distinct variable from pff_social."{VERSION}");''')
