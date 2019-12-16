@@ -1,10 +1,14 @@
 import pandas as pd
 import math
 import numpy as np
+from multiprocessing import Pool, cpu_count
 
-def calculate_nta(df):
-    # num = df._get_numeric_data()
-    # num[num<0] = np.nan ## remove outliers
+def calculate_nta(category):
+    df = pd.read_csv(f'data/{category}.csv', index_col=False)
+    df.replace(999999999, np.nan, inplace=True)
+    df.replace(555555555, np.nan, inplace=True)
+    df.replace(333333333, np.nan, inplace=True)
+    df.replace(222222222, np.nan, inplace=True)
     nta = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx',
                        skiprows=4, dtype=str,
                        names=['borough', 'fips', 'borough_code', 
@@ -36,22 +40,8 @@ def calculate_nta(df):
     r['GEO_ID'] = r.nta
     r = r.rename(columns={'nta':'NAME'})
     output = pd.concat([r, df], sort=True)
-    return output
+    output.to_csv(f'data/{category}_intermediate.csv', index=False)
 
 if __name__ == "__main__":
-    demo = pd.read_csv('data/demo.csv', index_col=False)
-    demo_intermediate = calculate_nta(demo)
-    demo_intermediate.to_csv('data/demo_intermediate.csv', index=False)
-
-    # B00002_001M doesn't exist anymore ...
-    econ = pd.read_csv('data/econ.csv', index_col=False)
-    econ_intermediate = calculate_nta(econ)
-    econ_intermediate.to_csv('data/econ_intermediate.csv', index=False)
-
-    hous = pd.read_csv('data/hous.csv', index_col=False)
-    hous_intermediate = calculate_nta(hous)
-    hous_intermediate.to_csv('data/hous_intermediate.csv', index=False)
-    
-    soci = pd.read_csv('data/soci.csv', index_col=False)
-    soci_intermediate = calculate_nta(soci)
-    soci_intermediate.to_csv('data/soci_intermediate.csv', index=False)
+    with Pool(processes=cpu_count()) as pool:
+        pool.map(calculate_nta, ['demo', 'hous', 'econ', 'soci'])
