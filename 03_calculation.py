@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import numpy as np
-from threading import Thread
+from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
 import math
 import json
@@ -22,7 +22,7 @@ def get_c(e, m):
         return m/1.645/e*100
 
 def get_p(e, agg_e):
-    if agg_e == 0: 
+    if agg_e == 0:
         return np.nan
     else:
         return e/agg_e*100
@@ -78,6 +78,9 @@ def calculate(category):
             df.loc[:,f'{i}P']\
                 = df.loc[~df[f'{variables[0]}PE'].isna(), :]\
                     .loc[:,f'{variables[0]}PE']
+
+            df.loc[df[f'{variables[0]}PE'] == df[total_e], f'{i}P'] = 100
+
         else: 
             df.loc[:,f'{i}P']\
                 = df.apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)
@@ -111,7 +114,9 @@ def calculate(category):
     os.system(f'echo "{category} is done"')
 
 if __name__ == "__main__":
-    calculate('demo')
-    calculate('hous')
-    calculate('econ')
-    calculate('soci')
+    with Pool(processes=cpu_count()) as pool:
+        pool.map(calculate, ['demo', 'hous', 'econ', 'soci'])
+    # calculate('demo')
+    # calculate('hous')
+    # calculate('econ')
+    # calculate('soci')

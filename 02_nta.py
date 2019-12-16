@@ -3,6 +3,8 @@ import math
 import numpy as np
 
 def calculate_nta(df):
+    # num = df._get_numeric_data()
+    # num[num<0] = np.nan ## remove outliers
     nta = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx',
                        skiprows=4, dtype=str,
                        names=['borough', 'fips', 'borough_code', 
