@@ -71,14 +71,14 @@ def calculate(category):
             If for some of the records PE is already calculated, 
             then take them directly and calculate PE for the rest
             '''
-            df.loc[:,f'{i}P'] \
+            df.loc[df[f'{variables[0]}PE'].isna(),f'{i}P'] \
                 = df.loc[df[f'{variables[0]}PE'].isna(), :]\
-                    .apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)    
-            
-            df.loc[:,f'{i}P']\
-                = df.loc[~df[f'{variables[0]}PE'].isna(), :]\
-                    .loc[:,f'{variables[0]}PE']
+                    .apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)   
 
+            df.loc[df[f'{variables[0]}PE'].notna(),f'{i}P']\
+                = df.loc[df[f'{variables[0]}PE'].notna(), :]\
+                    .loc[:,f'{variables[0]}PE']
+                    
             df.loc[df[f'{variables[0]}PE'] == df[total_e], f'{i}P'] = 100
 
         else: 
@@ -90,7 +90,7 @@ def calculate(category):
             If for some of the records PM is already calculated, 
             then take them directly and calculate PM for the rest
             '''
-            df.loc[:,f'{i}Z']\
+            df.loc[df[f'{variables[0]}PM'].isna(),f'{i}Z']\
                 = df.loc[df[f'{variables[0]}PM'].isna(), :]\
                     .apply(lambda row: get_z(row[f'{i}E'], 
                                             row[f'{i}M'], 
@@ -98,8 +98,8 @@ def calculate(category):
                                             row[total_e],
                                             row[total_m]), axis=1)
 
-            df.loc[:,f'{i}Z']\
-                = df.loc[~df[f'{variables[0]}PM'].isna(), :]\
+            df.loc[df[f'{variables[0]}PM'].notna(),f'{i}Z']\
+                = df.loc[df[f'{variables[0]}PM'].notna(), :]\
                     .loc[:,f'{variables[0]}PM']
         else:
             df.loc[:,f'{i}Z']\
