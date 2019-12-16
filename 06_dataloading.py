@@ -49,6 +49,7 @@ if __name__ == "__main__":
     export_pff('social', 'data/soci_final_pivoted.csv', con)
     export_pff('housing', 'data/hous_final_pivoted.csv', con)
 
+    # Taking variables no longer produced by acs
     con.execute(f'''
     INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
     select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2006-2010" 
