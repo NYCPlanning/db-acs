@@ -11,8 +11,11 @@ import os
 def get_e(e):
     return sum(e)
 
+def get_e_special(e):
+    return max(e)-min(e)
+
 def get_m(m):
-    result = math.sqrt(sum(map(lambda x: x**2, m)))
+    result = sum(map(lambda x: x**2, m))**0.5
     return result
 
 def get_c(e, m): 
@@ -64,7 +67,10 @@ def calculate(category):
         total_e = find_total(variables[0], 'E')
         total_m = find_total(variables[0], 'M')
 
-        df.loc[:,f'{i}E'] = np.apply_along_axis(get_e, 1, dff[:, e_variables])
+        if i in ['WrkrNotHm']:
+            df.loc[:,f'{i}E'] = np.apply_along_axis(get_e_special, 1, dff[:, e_variables])
+        else:
+            df.loc[:,f'{i}E'] = np.apply_along_axis(get_e, 1, dff[:, e_variables])
         df.loc[:,f'{i}M'] = np.apply_along_axis(get_m, 1, dff[:, m_variables])
         df.loc[:,f'{i}C'] = df.apply(lambda row: get_c(row[f'{i}E'], row[f'{i}M']), axis=1)
         
@@ -88,6 +94,7 @@ def calculate(category):
                 = df.apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)
 
         df.loc[df[f'{i}P'] == df[f'{i}E'], f'{i}P'] = 100
+        
 
         if len(variables) == 1 and f'{variables[0]}PM' in df.columns:
             '''
