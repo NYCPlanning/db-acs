@@ -45,7 +45,9 @@ def find_total(variable, stat='E'):
     elif variable[0] == 'D': 
         return f"{variable.split('_')[0]}_0001{stat}"
     else: #S1810_C01_001M
-        return f"{'_'.join(variable.split('_')[:2])}_001{stat}"
+        parts = variable.split('_')
+        return f'{parts[0]}_C01_{parts[2]}{stat}'
+        # return f"{'_'.join(variable.split('_')[:2])}_001{stat}"
 
 def calculate(category):
     df = pd.read_csv(f'data/{category}_intermediate.csv', index_col=False)
@@ -85,6 +87,8 @@ def calculate(category):
             df.loc[:,f'{i}P']\
                 = df.apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)
 
+        df.loc[df[f'{i}P'] == df[f'{i}E'], f'{i}P'] = 100
+
         if len(variables) == 1 and f'{variables[0]}PM' in df.columns:
             '''
             If for some of the records PM is already calculated, 
@@ -116,7 +120,3 @@ def calculate(category):
 if __name__ == "__main__":
     with Pool(processes=cpu_count()) as pool:
         pool.map(calculate, ['demo', 'hous', 'econ', 'soci'])
-    # calculate('demo')
-    # calculate('hous')
-    # calculate('econ')
-    # calculate('soci')

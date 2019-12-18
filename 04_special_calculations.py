@@ -184,7 +184,7 @@ if __name__ == "__main__":
     df['geotype'] = df['geo_id'].apply(assign_geotype)
     df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
     
-    df.loc[df.geotype=='NTA2010','hovacrte'] = 100*df['hovacue']/df['vacsalee']
+    df.loc[df.geotype=='NTA2010','hovacrte'] = 100*df['vacsalee']/df['hovacue']
     df.loc[df.geotype=='NTA2010','hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
     df.loc[df.geotype=='NTA2010','hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
     df['hovacrtz'] = np.nan

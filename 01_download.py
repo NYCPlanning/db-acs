@@ -1,7 +1,9 @@
 import requests
 import pandas as pd
+import numpy as np
 import json
 import os
+from multiprocessing import Pool, cpu_count
 
 api_key=os.environ['API_KEY']
 
@@ -93,13 +95,17 @@ def create_big_table(group):
     frames.append(create_table(group, get_puma))
     return pd.concat(frames)
 
-demo_df = create_big_table(demo_groups)
-hous_df = create_big_table(hous_groups)
-soci_df = create_big_table(soci_groups)
-econ_df = create_big_table(econ_groups)
+def download(inputs):
+    category = inputs.get('category')
+    group = inputs.get('group')
+    df = create_big_table(group)
+    df.to_csv(f'data/{category}.csv', index=False)
+    print(f'{category} is done!')
 
-demo_df.to_csv('data/demo.csv', index=False)
-hous_df.to_csv('data/hous.csv', index=False)
-soci_df.to_csv('data/soci.csv', index=False)
-econ_df.to_csv('data/econ.csv', index=False)
-
+if __name__ == "__main__":
+    with Pool(processes=cpu_count()) as pool:
+        pool.map(download, [
+            dict(category='demo', group=demo_groups),
+            dict(category='econ', group=econ_groups),
+            dict(category='soci', group=soci_groups),
+            dict(category='hous', group=hous_groups)])

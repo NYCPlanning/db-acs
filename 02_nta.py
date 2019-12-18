@@ -5,10 +5,8 @@ from multiprocessing import Pool, cpu_count
 
 def calculate_nta(category):
     df = pd.read_csv(f'data/{category}.csv', index_col=False)
-    df.replace(999999999, np.nan, inplace=True)
-    df.replace(555555555, np.nan, inplace=True)
-    df.replace(333333333, np.nan, inplace=True)
-    df.replace(222222222, np.nan, inplace=True)
+    df = df.replace([999999999, 555555555, 333333333, 222222222, 666666666,
+                    -999999999, -555555555, -333333333, -222222222, -666666666], np.nan)
     nta = pd.read_excel('data/nyc2010census_tabulation_equiv.xlsx',
                        skiprows=4, dtype=str,
                        names=['borough', 'fips', 'borough_code', 
@@ -31,7 +29,7 @@ def calculate_nta(category):
             if f'{v}M' not in dfff.columns:
                 m = np.nan
             else:
-                m = math.sqrt(dfff[f'{v}M'].apply(lambda x: x**2).sum())
+                m =(dfff[f'{v}M']**2).sum()**0.5
             record[f'{v}E'] = e
             record[f'{v}M'] = m
         results.append(record)

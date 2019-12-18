@@ -67,7 +67,3 @@ def pivot_output(category):
 if __name__ == "__main__":
     with Pool(processes=cpu_count()) as pool:
         pool.map(pivot_output, ['demo', 'hous', 'econ', 'soci'])
-    # pivot_output('soci')
-    # pivot_output('econ')
-    # pivot_output('demo')
-    # pivot_output('hous')
