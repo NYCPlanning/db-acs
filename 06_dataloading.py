@@ -52,12 +52,12 @@ if __name__ == "__main__":
     # Taking variables no longer produced by acs
     con.execute(f'''
     INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2006-2010" 
+    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
     where variable not in (select distinct variable from pff_social."{VERSION}");''')
 
     con.execute(f'''
     INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2006-2010" 
+    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
     where variable not in (select distinct variable from pff_housing."{VERSION}");''')
 
     con = create_engine(os.getenv('BUILD_ENGINE'))

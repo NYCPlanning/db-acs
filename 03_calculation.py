@@ -15,7 +15,7 @@ def get_e_special(e):
     return max(e)-min(e)
 
 def get_m(m):
-    result = sum(map(lambda x: x**2, m))**0.5
+    result = sum(map(lambda x: x**2, filter(lambda x: ~np.isnan(x), m)))**0.5
     return result
 
 def get_c(e, m): 
@@ -127,3 +127,7 @@ def calculate(category):
 if __name__ == "__main__":
     with Pool(processes=cpu_count()) as pool:
         pool.map(calculate, ['demo', 'hous', 'econ', 'soci'])
+    
+    # with Pool(processes=cpu_count()) as pool:
+    #     pool.map(calculate, ['demo'])
+    
