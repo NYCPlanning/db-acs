@@ -4,13 +4,33 @@ import numpy as np
 from sqlalchemy import create_engine
 from urllib.parse import urlparse
 import psycopg2
+import math
+
 
 def get_c(e, m):
     if e == 0:
         return np.nan
     else:
         return m/1.645/e*100
-        
+
+def get_p(e, agg_e):
+    if agg_e == 0:
+        return np.nan
+    else:
+        return e/agg_e*100
+
+def get_z(e, m, p, agg_e, agg_m):
+    if p == 0:
+        return np.nan
+    elif p == 100:
+        return  np.nan
+    elif agg_e == 0:
+        return  np.nan
+    elif m**2 - (e*agg_m/agg_e)**2 <0:
+        return math.sqrt(m**2 + (e*agg_m/agg_e)**2)/agg_e*100
+    else: 
+        return math.sqrt(m**2 - (e*agg_m/agg_e)**2)/agg_e*100
+
 def format_geoid(geoid):
     fips_lookup = {
         '05': '2',

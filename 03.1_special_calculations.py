@@ -83,7 +83,14 @@ def get_median_moe(buckets, row, DF=1.1):
                 return (upperbound - lowerbound)*1.645/2
 
 if __name__ == "__main__":
-    # Demographics
+    """
+     ____  _____ __  __  ___  
+    |  _ \| ____|  \/  |/ _ \ 
+    | | | |  _| | |\/| | | | |
+    | |_| | |___| |  | | |_| |
+    |____/|_____|_|  |_|\___/ 
+
+    """
     df = pd.read_csv('data/demo_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
     df['geoid'] = df['geo_id'].apply(format_geoid)
@@ -97,7 +104,13 @@ if __name__ == "__main__":
     df['mdagep'] = np.nan
     df.to_csv('data/demo_final1.csv', index=False)
 
-    # Economics
+    """
+     _____ ____ ___  _   _ 
+    | ____/ ___/ _ \| \ | |
+    |  _|| |  | | | |  \| |
+    | |__| |__| |_| | |\  |
+    |_____\____\___/|_| \_|
+    """
     df = pd.read_csv('data/econ_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
     df['geoid'] = df['geo_id'].apply(format_geoid)
@@ -167,7 +180,13 @@ if __name__ == "__main__":
 
     df.to_csv('data/econ_final1.csv', index=False)
 
-    # Housing
+    """
+     _   _  ___  _   _ ____  
+    | | | |/ _ \| | | / ___| 
+    | |_| | | | | | | \___ \ 
+    |  _  | |_| | |_| |___) |
+    |_| |_|\___/ \___/|____/ 
+    """
     def hovacrtm(hovacue, vacsalee, vacsalem, hovacum):
         if hovacue == 0:
             return 0
@@ -228,7 +247,14 @@ if __name__ == "__main__":
     df['mdvlp'] = np.nan
     df.to_csv('data/hous_final1.csv', index=False)
 
-    # Social
+
+    """
+     ____   ___   ____ ___ 
+    / ___| / _ \ / ___|_ _|
+    \___ \| | | | |    | | 
+     ___) | |_| | |___ | | 
+    |____/ \___/ \____|___|
+    """
     df = pd.read_csv('data/soci_final.csv', index_col=False)
     df.columns = map(str.lower, df.columns)
     df['geoid'] = df['geo_id'].apply(format_geoid)

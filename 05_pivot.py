@@ -27,7 +27,7 @@ for i in [mdage, mdefftwrk, mdemftwrk, \
     median_cols += list(i.keys())
 
 def pivot_output(category):
-    df = pd.read_csv(f'data/{category}_final1.csv', index_col=False, low_memory=False)
+    df = pd.read_csv(f'data/{category}_final2.csv', index_col=False, low_memory=False)
     cols = [i for i in df.columns if i not in ['geoid', 'geo_id', 'geotype', 'name', 'geogname']]
     var = set(list(map(lambda x: x[:-1], cols)))
 

@@ -2,12 +2,12 @@ import requests
 import pandas as pd
 import numpy as np
 from multiprocessing import Pool, cpu_count
+from utils import get_p, get_z, get_c
 from tqdm import tqdm
 import math
 import json
 import os
 
-# e --> estimate, m --> moe
 def get_e(e):
     return sum(e)
 
@@ -17,40 +17,6 @@ def get_e_special(e):
 def get_m(m):
     result = sum(map(lambda x: x**2, filter(lambda x: ~np.isnan(x), m)))**0.5
     return result
-
-def get_c(e, m): 
-    if e == 0:
-        return np.nan
-    else:
-        return m/1.645/e*100
-
-def get_p(e, agg_e):
-    if agg_e == 0:
-        return np.nan
-    else:
-        return e/agg_e*100
-
-def get_z(e, m, p, agg_e, agg_m):
-    if p == 0:
-        return np.nan
-    elif p == 100:
-        return  np.nan
-    elif agg_e == 0:
-        return  np.nan
-    elif m**2 - (e*agg_m/agg_e)**2 <0:
-        return math.sqrt(m**2 + (e*agg_m/agg_e)**2)/agg_e*100
-    else: 
-        return math.sqrt(m**2 - (e*agg_m/agg_e)**2)/agg_e*100
-
-# def find_total(variable, stat='E'):
-#     if variable[0] == 'B' or variable[0] == 'C' : 
-#         return f"{variable.split('_')[0]}_001{stat}"
-#     elif variable[0] == 'D': 
-#         return f"{variable.split('_')[0]}_0001{stat}"
-#     else: #S1810_C01_001M
-#         parts = variable.split('_')
-#         return f'{parts[0]}_C01_{parts[2]}{stat}'
-#         return f"{'_'.join(variable.split('_')[:2])}_001{stat}"
 
 def calculate(category):
     df = pd.read_csv(f'data/{category}_intermediate.csv', index_col=False)
@@ -88,6 +54,7 @@ def calculate(category):
             df.loc[:,f'{i}Z'] = np.nan
 
         elif base not in ordered_variables:
+            print(f'{i}:{base}')
             df.loc[:,f'{i}P'] = np.nan
             df.loc[:,f'{i}Z'] = np.nan
 
@@ -144,7 +111,3 @@ def calculate(category):
 if __name__ == "__main__":
     with Pool(processes=cpu_count()) as pool:
         pool.map(calculate, ['demo', 'hous', 'econ', 'soci'])
-    
-    # with Pool(processes=cpu_count()) as pool:
-    #     pool.map(calculate, ['demo'])
-    
