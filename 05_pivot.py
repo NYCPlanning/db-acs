@@ -56,11 +56,21 @@ def pivot_output(category):
         r.append(dff)
 
     result = pd.concat(r)
-    result.loc[result.c < 0,'c'] = np.nan
+    result.loc[result.c <= 0,'c'] = np.nan
     result.loc[result.e < 0,'e'] = np.nan
-    result.loc[result.m < 0,'m'] = np.nan
+    result.loc[result.m <= 0,'m'] = np.nan
     result.loc[result.p < 0,'p'] = np.nan
     result.loc[result.z < 0,'z'] = np.nan
+
+    result.loc[result.e==0, 'c'] = np.nan
+    result.loc[result.e==0, 'm'] = np.nan
+    result.loc[result.e==0, 'p'] = np.nan
+    result.loc[result.e==0, 'z'] = np.nan
+
+    result.loc[result.m.isna(), 'c'] = np.nan
+    result.loc[result.m.isna(), 'p'] = np.nan
+    result.loc[result.m.isna(), 'z'] = np.nan
+
     result = result[['geotype', 'geogname', 'geoid', 'dataset', 'variable', 'c', 'e', 'm', 'p', 'z']]
     result.to_csv(f'data/{category}_final_pivoted.csv', index=False)
 

@@ -3,7 +3,7 @@ import numpy as np
 import math
 import json
 import os
-from utils import get_p, get_z
+from utils import get_p, get_z, get_c
 
 # Import tables
 demo = pd.read_csv('data/demo_final1.csv', index_col=False, low_memory=False)
@@ -19,13 +19,13 @@ def recalculate(df, base_var):
     else:
         for i in variables:
             df.loc[:,f'{i}p']\
-                                = df.apply(lambda row: get_p(row[f'{i}e'], row[f'{base_var}e']), axis=1)
+                = df.apply(lambda row: get_p(row[f'{i}e'], row[f'{base_var}e']), axis=1)
             df.loc[:,f'{i}z']\
-                                = df.apply(lambda row: get_z(row[f'{i}e'], 
-                                                            row[f'{i}m'], 
-                                                            row[f'{i}p'], 
-                                                            row[f'{base_var}e'],
-                                                            row[f'{base_var}m']), axis=1)
+                = df.apply(lambda row: get_z(row[f'{i}e'], 
+                                            row[f'{i}m'], 
+                                            row[f'{i}p'], 
+                                            row[f'{base_var}e'],
+                                            row[f'{base_var}m']), axis=1)
     print(f'variables with base {base_var} is recalcuated')
     return df
 
@@ -84,4 +84,12 @@ hous.to_csv('data/hous_final2.csv', index=False)
 """
 soci = recalculate(soci, 'avgfmsz')
 soci = recalculate(soci, 'avghhsz')
+soci.loc[soci.ea_bchdhe.isna(), 'ea_bchdhe'] = soci.loc[soci.ea_bchdhe.isna(), :]\
+                                                    .apply(lambda row: row['ea_bchdhm']*row['ea_bchdhp'], axis=1)
+soci.loc[:, 'ea_bchdhc'] = soci.apply(lambda row: get_c(row['ea_bchdhe'], row['ea_bchdhm']), axis=1)
+soci.loc[:, 'ea_bchdhz'] = soci.apply(lambda row: get_z(row['ea_bchdhe'],
+                                            row['ea_bchdhm'],
+                                            row['ea_bchdhp'], 
+                                            row['ea_p25ple'],
+                                            row['ea_p25plm']), axis=1)
 soci.to_csv('data/soci_final2.csv', index=False)

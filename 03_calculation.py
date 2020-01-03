@@ -16,7 +16,10 @@ def get_e_special(e):
 
 def get_m(m):
     result = sum(map(lambda x: x**2, filter(lambda x: ~np.isnan(x), m)))**0.5
-    return result
+    if result == 0: 
+        return np.nan
+    else: 
+        return result
 
 def calculate(category):
     df = pd.read_csv(f'data/{category}_intermediate.csv', index_col=False)

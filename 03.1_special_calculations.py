@@ -25,7 +25,7 @@ def get_median(buckets, row):
     elif C == 0: 
         median =0
     elif i == len(buckets.keys())-1:
-        median = list(buckets.values())[-1][1]
+        median = list(buckets.values())[-1][0]
     else: 
         C = C - int(row[orderedE[i]])
         L = buckets[ordered[i]][0]
@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     # For the following special calculation, only apply to NTA
     df.loc[df.geotype=='NTA2010','percapince'] = df['agip15ple']/df['pop_6e']
-    df.loc[df.geotype=='NTA2010','percapincm'] = np.sqrt(df['agip15plm']**2 + (df['agip15ple']*df['pop_6m']/df['pop_6e'])**2)*df['pop_6e']
+    df.loc[df.geotype=='NTA2010','percapincm'] = 1/df['pop_6e']*np.sqrt(df['agip15plm']**2 + (df['agip15ple']*df['pop_6m']/df['pop_6e'])**2)
     df.loc[df.geotype=='NTA2010','percapincc'] = df.apply(lambda row: get_c(row['percapince'], row['percapincm']), axis=1)
     df['percapincz'] = np.nan
     df['percapincp'] = np.nan
