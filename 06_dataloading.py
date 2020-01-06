@@ -59,10 +59,3 @@ if __name__ == "__main__":
     INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
     select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
     where variable not in (select distinct variable from pff_housing."{VERSION}");''')
-
-    con = create_engine(os.getenv('BUILD_ENGINE'))
-
-    export_pff('demographic', 'data/demo_final_pivoted.csv', con)
-    export_pff('economic', 'data/econ_final_pivoted.csv', con)
-    export_pff('social', 'data/soci_final_pivoted.csv', con)
-    export_pff('housing', 'data/hous_final_pivoted.csv', con)

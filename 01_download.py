@@ -1,9 +1,10 @@
+from multiprocessing import Pool, cpu_count
 import requests
 import pandas as pd
 import numpy as np
 import json
 import os
-from multiprocessing import Pool, cpu_count
+from data import YEAR
 
 api_key=os.environ['API_KEY']
 
@@ -21,10 +22,10 @@ hous_groups = ['B00002', 'B25070', 'B25004', 'B25075', 'B25008',
 
 all_groups = demo_groups + soci_groups + econ_groups + hous_groups
 
-groups = json.loads(requests.get('https://api.census.gov/data/2017/acs/acs5/groups.json').content)
-profile_groups = json.loads(requests.get('https://api.census.gov/data/2017/acs/acs5/profile/groups.json').content)
-cprofile_groups = json.loads(requests.get('https://api.census.gov/data/2017/acs/acs5/cprofile/groups.json').content)
-subject_groups = json.loads(requests.get('https://api.census.gov/data/2017/acs/acs5/subject/groups.json').content)
+groups = json.loads(requests.get(f'https://api.census.gov/data/{YEAR}/acs/acs5/groups.json').content)
+profile_groups = json.loads(requests.get(f'https://api.census.gov/data/{YEAR}/acs/acs5/profile/groups.json').content)
+cprofile_groups = json.loads(requests.get(f'https://api.census.gov/data/{YEAR}/acs/acs5/cprofile/groups.json').content)
+subject_groups = json.loads(requests.get(f'https://api.census.gov/data/{YEAR}/acs/acs5/subject/groups.json').content)
 
 meta = pd.DataFrame(groups['groups']+profile_groups['groups']+cprofile_groups['groups']+subject_groups['groups'])
 meta['description'] = meta['description'].apply(lambda x: x.lower())
@@ -42,7 +43,7 @@ meta['endpoint'] = meta['name'].apply(lambda x: endpoint_lookup.get(x.strip()[0]
 def get_tract(group, endpoint):
     frames = []
     for county in ['081', '085', '005', '047', '061']:
-        url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=tract:*&in=state:36&in=county:{county}&key={api_key}'
+        url = f'https://api.census.gov/data/{YEAR}/acs/acs5{endpoint}?get=group({group})&for=tract:*&in=state:36&in=county:{county}&key={api_key}'
         resp = requests.request('GET', url).content
         df = pd.DataFrame(json.loads(resp)[1:])
         df.columns = json.loads(resp)[0]
@@ -50,7 +51,7 @@ def get_tract(group, endpoint):
     return pd.concat(frames)
 
 def get_puma(group, endpoint):
-    url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=Public Use Microdata Area:*&in=state:36&key={api_key}'
+    url = f'https://api.census.gov/data/{YEAR}/acs/acs5{endpoint}?get=group({group})&for=Public Use Microdata Area:*&in=state:36&key={api_key}'
     resp = requests.request('GET', url).content
     df = pd.DataFrame(json.loads(resp)[1:])
     df.columns = json.loads(resp)[0]
@@ -60,7 +61,7 @@ def get_puma(group, endpoint):
 def get_borough(group, endpoint):
     frames = []
     for county in ['081', '085', '005', '047', '061']:
-        url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=county:{county}&in=state:36&key={api_key}'
+        url = f'https://api.census.gov/data/{YEAR}/acs/acs5{endpoint}?get=group({group})&for=county:{county}&in=state:36&key={api_key}'
         resp = requests.request('GET', url).content
         df = pd.DataFrame(json.loads(resp)[1:])
         df.columns = json.loads(resp)[0]
@@ -68,7 +69,7 @@ def get_borough(group, endpoint):
     return pd.concat(frames)
 
 def get_city(group,endpoint):
-    url = f'https://api.census.gov/data/2017/acs/acs5{endpoint}?get=group({group})&for=place:51000&in=state:36&key={api_key}'
+    url = f'https://api.census.gov/data/{YEAR}/acs/acs5{endpoint}?get=group({group})&for=place:51000&in=state:36&key={api_key}'
     resp = requests.request('GET', url).content
     df = pd.DataFrame(json.loads(resp)[1:])
     df.columns = json.loads(resp)[0]
