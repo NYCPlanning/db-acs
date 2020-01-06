@@ -84,12 +84,12 @@ hous.to_csv('data/hous_final2.csv', index=False)
 """
 soci = recalculate(soci, 'avgfmsz')
 soci = recalculate(soci, 'avghhsz')
-soci.loc[soci.ea_bchdhe.isna(), 'ea_bchdhe'] = soci.loc[soci.ea_bchdhe.isna(), :]\
-                                                    .apply(lambda row: row['ea_bchdhm']*row['ea_bchdhp'], axis=1)
-soci.loc[:, 'ea_bchdhc'] = soci.apply(lambda row: get_c(row['ea_bchdhe'], row['ea_bchdhm']), axis=1)
-soci.loc[:, 'ea_bchdhz'] = soci.apply(lambda row: get_z(row['ea_bchdhe'],
-                                            row['ea_bchdhm'],
-                                            row['ea_bchdhp'], 
-                                            row['ea_p25ple'],
-                                            row['ea_p25plm']), axis=1)
+# soci.loc[soci.ea_bchdhe.isna(), 'ea_bchdhe'] = soci.loc[soci.ea_bchdhe.isna(), :]\
+#                                                     .apply(lambda row: row['ea_bchdhm']*row['ea_bchdhp'], axis=1)
+# soci.loc[:, 'ea_bchdhc'] = soci.apply(lambda row: get_c(row['ea_bchdhe'], row['ea_bchdhm']), axis=1)
+# soci.loc[:, 'ea_bchdhz'] = soci.apply(lambda row: get_z(row['ea_bchdhe'],
+#                                             row['ea_bchdhm'],
+#                                             row['ea_bchdhp'], 
+#                                             row['ea_p25ple'],
+#                                             row['ea_p25plm']), axis=1)
 soci.to_csv('data/soci_final2.csv', index=False)
