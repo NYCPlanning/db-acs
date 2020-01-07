@@ -6,3 +6,6 @@
 *.egg-info
 *.pyc
 *__pycache__/*
+notebooks/
+erica/
+!data/factfinder_metadata.csv
