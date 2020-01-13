@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     df.loc[df.geotype=='NTA2010','mdnfince'] = df.apply(lambda row: get_median(mdnfinc, row), axis=1)
     df.loc[df.geotype=='NTA2010','mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, DF=design_factor['mdnfinc']), axis=1)
-    df.loc[df.geotype=='NTA2010','mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdnfincc'] = df.apply(lambda row: get_c(row['mdnfince'], row['mdnfincm']), axis=1)
     df['mdnfincz'] = np.nan
     df['mdnfincp'] = np.nan
 
