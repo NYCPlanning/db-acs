@@ -3,21 +3,21 @@ from utils import psycopg2_connect
 from sqlalchemy import create_engine
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
-from data import VERSION
+# from data import VERSION
 from multiprocessing import Pool, cpu_count
 import io
 import os
 import json
 
-version = VERSION
-VERSION = VERSION+'-erica'
+VERSION = 'Y2006-2010'
 
-df = pd.read_excel('erica/ACSDatabase_1418.xlsx', index_col=False)
+# df = pd.read_excel('erica/ACSDatabase_0610_inflatedfor1418.xlsx', index_col=False)
+df = pd.read_csv('erica/ACS_0610.csv', low_memory=False)
 df.columns = df.loc[0, :]
 df = df.loc[1:, :]
 df = df.rename(columns={"GeoType": "geotype", "GeogName": "geogname", "GeoID": "geoid"})
-df.to_csv('erica/erica_acs.csv', index=False)
-df = pd.read_csv('erica/erica_acs.csv', index_col=False, low_memory=False)
+# df.to_csv('erica/erica_acs.csv', index=False)
+# df = pd.read_csv('erica/erica_acs.csv', index_col=False, low_memory=False)
 
 def pivot(category):
     with open(f'data/{category}_meta_lookup.json', 'r') as f:
@@ -29,7 +29,7 @@ def pivot(category):
         cols = ['geotype', 'geogname', 'geoid', i+'C', i+'E', i+'M', i+'P', i+'Z']
         dff = df.loc[:, cols]
         dff.columns=['geotype', 'geogname', 'geoid', 'C', 'E', 'M', 'P', 'Z']
-        dff['dataset'] = version
+        dff['dataset'] = VERSION
         dff['variable'] = i
         r.append(dff)
 
