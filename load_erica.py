@@ -18,11 +18,13 @@ df = df.loc[1:, :]
 df = df.rename(columns={"GeoType": "geotype", "GeogName": "geogname", "GeoID": "geoid"})
 # df.to_csv('erica/erica_acs.csv', index=False)
 # df = pd.read_csv('erica/erica_acs.csv', index_col=False, low_memory=False)
+meta = pd.read_csv('data/factfinder_metadata.csv', index_col=False, dtype=str)
+meta = meta.loc[meta.release_year.str.contains('2006-2010',na=False), :]
+meta.profile = meta.profile.str.lower()
 
 def pivot(category):
-    with open(f'data/{category}_meta_lookup.json', 'r') as f:
-            meta = json.load(f)
-    var = list(meta.keys())
+    meta_cat = meta.loc[meta.profile.str.contains(category), 'variablename']
+    var = meta_cat.to_list()
     r = []
 
     for i in var:
