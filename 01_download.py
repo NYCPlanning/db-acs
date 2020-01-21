@@ -38,7 +38,7 @@ meta = pd.DataFrame(groups['groups']+profile_groups['groups'] +
 meta['description'] = meta['description'].apply(lambda x: x.lower())
 meta = meta[meta['name'].isin(all_groups)]
 
-# Add endpoint for table types -- refer to different table authors
+# Add endpoint for table types
 endpoint_lookup = {
     'B': '',
     'C': '',
