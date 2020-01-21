@@ -200,7 +200,7 @@ def create_table(group, getter):
     df = df[df.columns.difference(
         ['place', 'tract', 'state', 'county', 'public use microdata area'])]
 
-    # Merge tables by geography, dropping columns with names ending with A
+    # Merge tables by geography, dropping annotation code columns
     for i in frames[1:]:
         df = pd.merge(df, i[i.columns.difference(['state', 'county', 'tract', 'NAME', 'place', 'public use microdata area'])],
                       left_on='GEO_ID', right_on='GEO_ID')
