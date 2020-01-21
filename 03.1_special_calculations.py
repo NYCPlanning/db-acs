@@ -11,22 +11,49 @@ from data import design_factor, mdage, mdefftwrk, mdemftwrk, \
                 mdnfinc, mdrms, mdvl
 
 def get_median(buckets, row):
+    '''
+    Uses linear interpolation to calculate the median estimate
+    from binned data. First finds the middle bin, then
+    estimates where within that bin the N/2 record would be.
+
+    Parameters
+    ----------
+    buckets: dict
+       Contains upper and lower bin bounds for given variables.
+       Hard-coded in data.py
+
+    row: pd DataFrame row
+        One row, containing binned frequency estimates
+
+    Returns
+    -------
+    median: float
+        Interpolated median value
+        
+    '''
     ordered = list(buckets.keys())
     orderedE = [i+'e' for i in ordered]
     N = row[orderedE].sum()
     C = 0
     i = 0
+
+    # Find middle bin
     while C <= N/2 and i<=len(buckets.keys())-1:
         C += int(row[orderedE[i]])
         i += 1
     i = i-1
+
     if i == 0:
+        # N/2 is in bottom bin
         median = list(buckets.values())[0][1]
-    elif C == 0: 
-        median =0
+    elif C == 0:
+        # Cumulative freq is 0, so median is 0  
+        median = 0
     elif i == len(buckets.keys())-1:
+        # N/2 is in top bin
         median = list(buckets.values())[-1][0]
     else: 
+        # Interpolate where within middle bin the N/2 count is
         C = C - int(row[orderedE[i]])
         L = buckets[ordered[i]][0]
         F = int(row[orderedE[i]])
@@ -36,6 +63,32 @@ def get_median(buckets, row):
 
 
 def get_median_moe(buckets, row, DF=1.1):
+    '''
+    Calculates the MOE for a linear-interpollated median estimate
+    from binned data. First calculates the SE for a 0.5 proportion,
+    then uses this to find which bins the bounds of a 1SE confidence
+    interval fall into. Interpolates within these bins to estimate
+    SE of the median, which is then converted into a MOE.
+
+    Parameters
+    ----------
+    buckets: dict
+       Contains upper and lower bin bounds for given variables.
+       Hard-coded in data.py
+
+    row: pd DataFrame row
+        One row, containing binned frequency estimates
+
+    DF: float
+        Design Factor: weights SE calculations to account for 
+        ACS survey design. See design_factor dict in data.py
+
+    Returns
+    -------
+    median: float
+        MOE of interpolated median value
+        
+    '''
     ordered = list(buckets.keys())
     orderedE = [i+'e' for i in ordered]
     B = row[orderedE].sum()
@@ -44,29 +97,38 @@ def get_median_moe(buckets, row, DF=1.1):
     else:
         cumm_dist = list(np.cumsum(row[orderedE])/B*100)
 
+        # Calculate SE of 0.5 proportion using deign factor
         se_50 = DF*(((93/(7*B))*2500))**0.5
         
         if se_50 >= 50:
             return np.nan
-        else: 
+        else:
+            # Estimate 1SE interval around 0.5 proportion 
             p_lower = 50 - se_50
             p_upper = 50 + se_50
             
+            # Find bins where the bounds of the 1SE interval are
             lower_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_lower])
             upper_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_upper])
             
             if lower_bin >= len(ordered)-1 or upper_bin >= len(ordered)-1:
+                # Interval extends beyond bin range
                 return np.nan
             else:
+                # Interpolate where within the bins the 1SE bounds are
                 if lower_bin == upper_bin:
+                    # Bounds are within a single bin
                     A1 = min(buckets[ordered[lower_bin]])
                     A2 = min(buckets[ordered[lower_bin+1]])
                     C1 = cumm_dist[lower_bin-1]
                     C2 = cumm_dist[lower_bin]
+
+                    # Estimate median SEs from this interpolation
                     lowerbound = (p_lower - C1)*(A2-A1)/(C2-C1) + A1 
                     upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
 
                 else:
+                    # Bounds are in different bins
                     A1_l = min(buckets[ordered[lower_bin]])
                     A2_l = min(buckets[ordered[lower_bin+1]])
                     C1_l = cumm_dist[lower_bin-1]
@@ -77,9 +139,11 @@ def get_median_moe(buckets, row, DF=1.1):
                     C1_u = cumm_dist[upper_bin-1]
                     C2_u = cumm_dist[upper_bin]
 
+                    # Estimate median SEs from this interpolation
                     lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
                     upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
-
+                    
+                # Use estimated SE of the median to calculate MOE
                 return (upperbound - lowerbound)*1.645/2
 
 if __name__ == "__main__":

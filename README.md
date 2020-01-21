@@ -8,8 +8,9 @@
     ```bash
     python3 01_download.py
     python3 02_nta.py
-    python3 03_calculattion.py
-    python3 04_special_calculation.py
+    python3 03_calculation.py
+    python3 03.1_special_calculations.py
+    python3 03.2_recalculate.py
     python3 05_pivot.py
     ```
 

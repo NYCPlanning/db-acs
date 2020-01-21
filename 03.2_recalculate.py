@@ -5,7 +5,7 @@ import json
 import os
 from utils import get_p, get_z, get_c
 
-# Import tables
+# Import tables as outputted from 03.1_special_calculations.py
 demo = pd.read_csv('data/demo_final1.csv', index_col=False, low_memory=False)
 econ = pd.read_csv('data/econ_final1.csv', index_col=False, low_memory=False)
 soci = pd.read_csv('data/soci_final1.csv', index_col=False, low_memory=False)
@@ -13,6 +13,24 @@ hous = pd.read_csv('data/hous_final1.csv', index_col=False, low_memory=False)
 base = json.load(open('data/base_lookup.json'))
 
 def recalculate(df, base_var):
+    '''
+    Recalculates proportion estimate and MOE calculations
+    in case special calculations have changed the denominators.
+
+    Parameters
+    ----------
+    df: pd DataFrame
+       Contains results from special calculations
+
+    base_var: 
+        Variable to recalculate
+
+    Returns
+    -------
+    df: pd DataFrame
+        Table with recalculated proportion est and MOE
+        
+    '''
     variables = [a.lower() for a,b in base.items() if b.lower() == base_var]
     if len(variables) == 0:
         pass

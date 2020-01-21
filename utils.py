@@ -8,18 +8,76 @@ import math
 
 
 def get_c(e, m):
+    '''
+    Calculates coefficient of variation, a
+    measure of sampling error.
+    
+    Parameters
+    ----------
+    e: float
+       Estimate value for variable of interest
+    m: float
+       MOE for variable of interest
+
+    Returns
+    -------
+    float
+        Coefficient of variation
+
+    '''
     if e == 0:
         return np.nan
     else:
         return m/1.645/e*100
 
 def get_p(e, agg_e):
+    '''
+    Calculates proportion/percent estimate.
+    Returns None of the universe estimate is zero.
+    
+    Parameters
+    ----------
+    e: float
+       Estimate value for numerator
+    agg_e: float
+       Estimate value of the universe variable, or
+       proportion demoninator
+
+    Returns
+    -------
+    float
+        Estimate of proportion.
+          
+    '''
     if agg_e == 0:
         return np.nan
     else:
         return e/agg_e*100
 
 def get_z(e, m, p, agg_e, agg_m):
+    '''
+    Calculates the standard error of proportion and 
+    percent variables.
+    
+    Parameters
+    ----------
+    e: float
+       Estimate value of the proportion numerator
+    m: float
+        MOE value of the numerator
+    agg_e: float
+       Estimate value of the universe variable, or
+       proportion demoninator
+    agg_m: float
+       MOE value of the universe variable, or
+       proportion demoninator
+
+    Returns
+    -------
+    float
+        Standard error of the percent variable
+
+    '''
     if p == 0:
         return np.nan
     elif p == 100:
@@ -32,6 +90,21 @@ def get_z(e, m, p, agg_e, agg_m):
         return math.sqrt(m**2 - (e*agg_m/agg_e)**2)/agg_e*100
 
 def format_geoid(geoid):
+    '''
+    Parses the ACS GeoID field, converting county FIPS code to
+    borough abbreviation.
+    
+    Parameters
+    ----------
+    geoid: str
+        GEOID as found in downloaded ACS tables.
+
+    Returns
+    -------
+    str
+        Formatted ID, of the form BX + <smaller geography ID>
+
+    '''
     fips_lookup = {
         '05': '2',
         '47': '3',
@@ -55,7 +128,23 @@ def format_geoid(geoid):
     elif geoid[:2] == '16':
         return 0
 
-def assign_geotype(geoid): 
+def assign_geotype(geoid):
+    '''
+    Parses the ACS GeoID field to determine 
+    what type of spatial unit a record refers to.
+    
+    Parameters
+    ----------
+    geoid: str
+        GEOID as found in downloaded ACS tables.
+
+    Returns
+    -------
+    str
+        'NTA2010','PUMA2010','CT2010','Boro2010', or 'City2010'
+        Type of geography
+
+    ''' 
     # NTA
     if geoid[:2] in ['MN', 'QN', 'BX', 'BK', 'SI']: 
         return 'NTA2010'
@@ -73,6 +162,16 @@ def assign_geotype(geoid):
         return 'City2010'
 
 def assign_geogname(geotype, name, geoid):
+    '''
+    Uses formatted GEOID to set appropriate name.
+    These are full borough names, PUMA names, or NTA names.
+    
+    Parameters
+    ----------
+    geoid: str
+        Formatted ID, of the form BX + <smaller geography ID>
+        
+    '''
     boro_lookup = {
         '1': 'Manhattan',
         '2': 'Bronx', 
