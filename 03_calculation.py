@@ -11,19 +11,19 @@ import os
 
 def get_e(e):
     '''
-    Calculates aggregate estimate for a larger 
-    geography
+    Calculates estimate for a variable
+    that is the sum of two other variables
 
     Parameters
     ----------
     e: pd Series
-       Column containing estimate values for the smaller
-       geographies
+       Contains estimates for the variables being combined
+       for a single geography
 
     Returns
     -------
     float
-        Aggregate estimate
+        Estimate of the combined variable for a single geography
 
     '''
     return sum(e)
@@ -40,13 +40,13 @@ def get_e_special(e):
     Parameters
     ----------
     e: pd Series
-       Column containing estimate values for the smaller
-       geographies
+       Contains estimate values of the input variables for a 
+       single geography
 
     Returns
     -------
     float
-        Aggregate estimate
+        Difference estimate for a single geography
 
     '''
     return max(e)-min(e)
@@ -54,19 +54,19 @@ def get_e_special(e):
 
 def get_m(m):
     '''
-    Calculates aggregate MOE for a larger 
-    geography
+    Calculates aggregate MOE for a variable that
+    is the sum or difference of two other, independent
+    varibales
 
     Parameters
     ----------
     e: pd Series
-       Column containing MOE values for the smaller
-       geographies
+        Contains MOE for the variables being combined for a single geography
 
     Returns
     -------
     float
-        Aggregate MOE
+        MOE of the combined variable for a single geography
 
 
     '''
@@ -80,7 +80,11 @@ def get_m(m):
 def calculate(category):
     '''
     For the given category, calculates
-    all aggregate estimates and MOEs at the NTA-level.
+    all aggregate estimates and MOEs of combined variabes
+    at the NTA-level.
+
+    These variables are combinations of other variables,
+    either by summing or taking proportions.
 
     Saves the new NTA-level data as CSV with the suffix
     "final" 
@@ -127,14 +131,14 @@ def calculate(category):
             df.loc[:, f'{i}E'] = np.apply_along_axis(
                 get_e_special, 1, dff[:, e_variables])
         else:
-            # Add smaller scale estimates
+            # Sum across variables
             df.loc[:, f'{i}E'] = np.apply_along_axis(
                 get_e, 1, dff[:, e_variables])
 
-        # Calculate aggregate MOE
+        # Calculate MOE for sum of variables
         df.loc[:, f'{i}M'] = np.apply_along_axis(get_m, 1, dff[:, m_variables])
 
-        # Calculate aggregate coefficient of variation
+        # Calculate coefficient of variation for sum of variables
         df.loc[:, f'{i}C'] = df.apply(
             lambda row: get_c(row[f'{i}E'], row[f'{i}M']), axis=1)
 
@@ -195,7 +199,7 @@ def calculate(category):
                                                  row[total_e],
                                                  row[total_m]), axis=1)
 
-    # Create a DataFrame ontaining all output columns, then export to CSV
+    # Create a DataFrame containing all output columns, then export to CSV
     output_cols = sum([[i+'E', i+'M', i+'P', i+'Z', i+'C']
                        for i in meta_lookup.keys()], []) + ['GEO_ID', 'NAME']
     df[output_cols].to_csv(f'data/{category}_final.csv', index=False)
