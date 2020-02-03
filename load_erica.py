@@ -12,12 +12,12 @@ import json
 VERSION = 'Y2006-2010'
 
 # df = pd.read_excel('erica/ACSDatabase_0610_inflatedfor1418.xlsx', index_col=False)
-df = pd.read_csv('erica/ACS_0610.csv', low_memory=False)
+# df.to_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', index=False)
+df = pd.read_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', low_memory=False)
+
 df.columns = df.loc[0, :]
 df = df.loc[1:, :]
 df = df.rename(columns={"GeoType": "geotype", "GeogName": "geogname", "GeoID": "geoid"})
-# df.to_csv('erica/erica_acs.csv', index=False)
-# df = pd.read_csv('erica/erica_acs.csv', index_col=False, low_memory=False)
 meta = pd.read_csv('data/factfinder_metadata.csv', index_col=False, dtype=str)
 meta = meta.loc[meta.release_year.str.contains('2006-2010',na=False), :]
 meta.profile = meta.profile.str.lower()
@@ -75,6 +75,12 @@ def export_pff(name, path, con):
     str_buffer.close()
     db_cursor.close()
     db_connection.close()
+    con.execute(f'''
+        insert into pff_{name}."Y2006-2010"
+        select * from pff_{name}."Y2006-2010-old" a 
+        where a.variable  not in
+        (select distinct b.variable from pff_{name}."Y2006-2010" b);
+    ''')
 
 load_dotenv(Path(__file__).parent/'.env')
 con = create_engine(os.getenv('EDM_DATA'))
@@ -83,13 +89,3 @@ export_pff('demographic', 'erica/demo_final_pivoted.csv', con)
 export_pff('economic', 'erica/econ_final_pivoted.csv', con)
 export_pff('social', 'erica/soci_final_pivoted.csv', con)
 export_pff('housing', 'erica/hous_final_pivoted.csv', con)
-
-# con.execute(f'''
-# INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-# select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
-# where variable not in (select distinct variable from pff_social."{VERSION}");''')
-
-# con.execute(f'''
-# INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-# select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
-# where variable not in (select distinct variable from pff_housing."{VERSION}");''')
