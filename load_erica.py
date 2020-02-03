@@ -13,21 +13,18 @@ VERSION = 'Y2006-2010'
 
 # df = pd.read_excel('erica/ACSDatabase_0610_inflatedfor1418.xlsx', index_col=False)
 # df.to_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', index=False)
-df = pd.read_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', low_memory=False)
-
-df.columns = df.loc[0, :]
-df = df.loc[1:, :]
+df = pd.read_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', skiprows=1, low_memory=False)
 df = df.rename(columns={"GeoType": "geotype", "GeogName": "geogname", "GeoID": "geoid"})
 meta = pd.read_csv('data/factfinder_metadata.csv', index_col=False, dtype=str)
-meta = meta.loc[meta.release_year.str.contains('2006-2010',na=False), :]
-meta.profile = meta.profile.str.lower()
+smeta.profile = meta.profile.str.lower()
 
 def pivot(category):
-    meta_cat = meta.loc[meta.profile.str.contains(category), 'variablename']
+    meta_cat = meta.loc[meta.profile.str.contains(category, na=False), 'variablename']
     var = meta_cat.to_list()
     r = []
 
     for i in var:
+        i = i.strip()
         cols = ['geotype', 'geogname', 'geoid', i+'C', i+'E', i+'M', i+'P', i+'Z']
         dff = df.loc[:, cols]
         dff.columns=['geotype', 'geogname', 'geoid', 'C', 'E', 'M', 'P', 'Z']
@@ -75,12 +72,6 @@ def export_pff(name, path, con):
     str_buffer.close()
     db_cursor.close()
     db_connection.close()
-    con.execute(f'''
-        insert into pff_{name}."Y2006-2010"
-        select * from pff_{name}."Y2006-2010-old" a 
-        where a.variable  not in
-        (select distinct b.variable from pff_{name}."Y2006-2010" b);
-    ''')
 
 load_dotenv(Path(__file__).parent/'.env')
 con = create_engine(os.getenv('EDM_DATA'))
