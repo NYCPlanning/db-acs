@@ -16,7 +16,7 @@ VERSION = 'Y2006-2010'
 df = pd.read_csv('erica/ACSDatabase_0610_inflatedfor1418.csv', skiprows=1, low_memory=False)
 df = df.rename(columns={"GeoType": "geotype", "GeogName": "geogname", "GeoID": "geoid"})
 meta = pd.read_csv('data/factfinder_metadata.csv', index_col=False, dtype=str)
-smeta.profile = meta.profile.str.lower()
+meta.profile = meta.profile.str.lower()
 
 def pivot(category):
     meta_cat = meta.loc[meta.profile.str.contains(category, na=False), 'variablename']

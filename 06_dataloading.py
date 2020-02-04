@@ -44,18 +44,18 @@ if __name__ == "__main__":
     load_dotenv(Path(__file__).parent/'.env')
     con = create_engine(os.getenv('EDM_DATA'))
 
-    export_pff('demographic', 'data/demo_final_pivoted.csv', con)
-    export_pff('economic', 'data/econ_final_pivoted.csv', con)
-    export_pff('social', 'data/soci_final_pivoted.csv', con)
+    # export_pff('demographic', 'data/demo_final_pivoted.csv', con)
+    # export_pff('economic', 'data/econ_final_pivoted.csv', con)
+    # export_pff('social', 'data/soci_final_pivoted.csv', con)
     export_pff('housing', 'data/hous_final_pivoted.csv', con)
 
-    # Taking variables no longer produced by acs
-    con.execute(f'''
-    INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
-    where variable not in (select distinct variable from pff_social."{VERSION}");''')
+    # # Taking variables no longer produced by acs
+    # con.execute(f'''
+    # INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
+    # select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
+    # where variable not in (select distinct variable from pff_social."{VERSION}");''')
 
-    con.execute(f'''
-    INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
-    where variable not in (select distinct variable from pff_housing."{VERSION}");''')
+    # con.execute(f'''
+    # INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
+    # select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
+    # where variable not in (select distinct variable from pff_housing."{VERSION}");''')
