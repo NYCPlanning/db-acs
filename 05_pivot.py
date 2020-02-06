@@ -30,13 +30,11 @@ def pivot_output(category):
     df = pd.read_csv(f'data/{category}_final2.csv', index_col=False, low_memory=False)
     cols = [i for i in df.columns if i not in ['geoid', 'geo_id', 'geotype', 'name', 'geogname']]
     var = set(list(map(lambda x: x[:-1], cols)))
-
+    
     r = []
     with open(f'data/{category}_variable_lookup.json', 'r') as f:
             variable_lookup = json.load(f)
     for i in var:
-        if i == 'mvbf79':
-            print(i)
         cols = ['geotype', 'geogname', 'geoid', i+'c', i+'e', i+'m', i+'p', i+'z']
         dff = df.loc[:, cols]
         dff.columns=['geotype', 'geogname', 'geoid', 'c', 'e', 'm', 'p', 'z']
@@ -77,6 +75,5 @@ def pivot_output(category):
     result.to_csv(f'data/{category}_final_pivoted.csv', index=False)
 
 if __name__ == "__main__":
-    # with Pool(processes=cpu_count()) as pool:
-    #     pool.map(pivot_output, ['demo', 'hous', 'econ', 'soci'])
-    pivot_output('hous')
+    with Pool(processes=cpu_count()) as pool:
+        pool.map(pivot_output, ['demo', 'hous', 'econ', 'soci'])

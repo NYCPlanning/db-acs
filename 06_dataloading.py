@@ -44,18 +44,38 @@ if __name__ == "__main__":
     load_dotenv(Path(__file__).parent/'.env')
     con = create_engine(os.getenv('EDM_DATA'))
 
-    # export_pff('demographic', 'data/demo_final_pivoted.csv', con)
-    # export_pff('economic', 'data/econ_final_pivoted.csv', con)
-    # export_pff('social', 'data/soci_final_pivoted.csv', con)
+    export_pff('demographic', 'data/demo_final_pivoted.csv', con)
+    export_pff('economic', 'data/econ_final_pivoted.csv', con)
+    export_pff('social', 'data/soci_final_pivoted.csv', con)
     export_pff('housing', 'data/hous_final_pivoted.csv', con)
 
-    # # Taking variables no longer produced by acs
-    # con.execute(f'''
-    # INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    # select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
-    # where variable not in (select distinct variable from pff_social."{VERSION}");''')
+    # Taking variables no longer produced by acs
+    con.execute(f'''
+    INSERT INTO pff_social."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
+    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_social."Y2013-2017-old" 
+    where variable not in (select distinct variable from pff_social."{VERSION}");
+    delete from pff_social."{VERSION}" where variable ~* 'name.';''')
 
-    # con.execute(f'''
-    # INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
-    # select geotype, geogname, geoid, '{VERSION}' as dataset, variable, c,e,m,p,z from pff_housing."Y2013-2017-old" 
-    # where variable not in (select distinct variable from pff_housing."{VERSION}");''')
+    # add deleted variables back into new table, but all values as nulls
+    con.execute(f'''
+    INSERT INTO pff_housing."{VERSION}"(geotype,geogname,geoid,dataset,variable,c,e,m,p,z)
+    select geotype, geogname, geoid, '{VERSION}' as dataset, variable, NULL as c, NULL as e, NULL as m, NULL as p, NULL as z from pff_housing."Y2006-2010" 
+    where variable not in (select distinct variable from pff_housing."{VERSION}");''')
+
+    con.execute(f'''
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_demographic to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_housing to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_economic to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_social to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_acs_metadata to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_decennial to labs;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pff_decennial_metadata to labs;
+        GRANT USAGE ON SCHEMA pff_decennial_metadata TO labs;
+        GRANT USAGE ON SCHEMA pff_decennial TO labs;
+        GRANT USAGE ON SCHEMA pff_acs_metadata TO labs;
+        GRANT USAGE ON SCHEMA pff_social TO labs;
+        GRANT USAGE ON SCHEMA pff_economic TO labs;
+        GRANT USAGE ON SCHEMA pff_housing TO labs;
+        GRANT USAGE ON SCHEMA pff_demographic TO labs;
+        GRANT USAGE ON SCHEMA pff_demographic TO labs;
+    ''')

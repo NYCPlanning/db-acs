@@ -37,8 +37,9 @@ def pivot(category):
     result = result[['geotype', 'geogname', 'geoid', 'dataset', 'variable', 'C', 'E', 'M', 'P', 'Z']]
     result.to_csv(f'erica/{category}_final_pivoted.csv', index=False)
 
-with Pool(processes=cpu_count()) as pool:
-    pool.map(pivot, ['demo', 'hous', 'econ', 'soci'])
+pivot('hous')
+# with Pool(processes=cpu_count()) as pool:
+#     pool.map(pivot, ['demo', 'hous', 'econ', 'soci'])
 
 def export_pff(name, path, con):
     df = pd.read_csv(path, index_col=False, dtype=str)
@@ -76,7 +77,7 @@ def export_pff(name, path, con):
 load_dotenv(Path(__file__).parent/'.env')
 con = create_engine(os.getenv('EDM_DATA'))
 
-export_pff('demographic', 'erica/demo_final_pivoted.csv', con)
-export_pff('economic', 'erica/econ_final_pivoted.csv', con)
-export_pff('social', 'erica/soci_final_pivoted.csv', con)
-export_pff('housing', 'erica/hous_final_pivoted.csv', con)
+# export_pff('demographic', 'erica/demo_final_pivoted.csv', con)
+# export_pff('economic', 'erica/econ_final_pivoted.csv', con)
+# export_pff('social', 'erica/soci_final_pivoted.csv', con)
+# export_pff('housing', 'erica/hous_final_pivoted.csv', con)
