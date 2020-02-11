@@ -21,3 +21,5 @@
     hous_final_pivoted.csv  
     soci_final_pivoted.csv
     ```
+
+https://census.gov/data/developers/data-sets/acs-1year/notes-on-acs-estimate-and-annotation-values.html

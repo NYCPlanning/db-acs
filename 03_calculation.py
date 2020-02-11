@@ -33,6 +33,15 @@ def calculate(category):
     base_variables = [i for i in meta_lookup.keys() if i in set(base_lookup.values())]
     rest_of_variables = [i for i in meta_lookup.keys() if i not in base_variables]
     ordered_variables = base_variables + rest_of_variables
+    if category == 'econ': 
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_001PE'] = df.loc[df.GEO_ID.str.len() != 4, 'S1701_C03_001E']
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_001PM'] = df.loc[df.GEO_ID.str.len() != 4, 'S1701_C03_001M']
+
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_002PE'] = df.loc[df.GEO_ID.str.len() != 4,'S1701_C03_002E']
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_002PM'] = df.loc[df.GEO_ID.str.len() != 4,'S1701_C03_002M']
+
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_010PE'] = df.loc[df.GEO_ID.str.len() != 4,'S1701_C03_010E']
+        df.loc[df.GEO_ID.str.len() != 4, 'S1701_C02_010PM'] = df.loc[df.GEO_ID.str.len() != 4,'S1701_C03_010M']
 
     for i in tqdm(ordered_variables):
         variables = meta_lookup[i]
@@ -52,7 +61,7 @@ def calculate(category):
         df.loc[:,f'{i}M'] = np.apply_along_axis(get_m, 1, dff[:, m_variables])
         df.loc[:,f'{i}C'] = df.apply(lambda row: get_c(row[f'{i}E'], row[f'{i}M']), axis=1)
         
-        if i in base_variables:
+        if i in base_variables and i != 'Hsp1':
             df.loc[:,f'{i}P'] = 100
             df.loc[:,f'{i}Z'] = np.nan
 
@@ -61,7 +70,7 @@ def calculate(category):
             df.loc[:,f'{i}P'] = np.nan
             df.loc[:,f'{i}Z'] = np.nan
 
-        else:        
+        else:
             if len(variables) == 1 and f'{variables[0]}PE' in df.columns:
                 '''
                 If for some of the records PE is already calculated, 
@@ -73,15 +82,10 @@ def calculate(category):
 
                 df.loc[df[f'{variables[0]}PE'].notna(),f'{i}P']\
                     = df.loc[df[f'{variables[0]}PE'].notna(), :]\
-                        .loc[:,f'{variables[0]}PE']
-                        
-                df.loc[df[f'{variables[0]}PE'] == df[total_e], f'{i}P'] = 100
-
+                        .loc[:,f'{variables[0]}PE']  
             else: 
                 df.loc[:,f'{i}P']\
                     = df.apply(lambda row: get_p(row[f'{i}E'], row[total_e]), axis=1)
-
-            df.loc[df[f'{i}P'] == df[f'{i}E'], f'{i}P'] = 100
         
             if len(variables) == 1 and f'{variables[0]}PM' in df.columns:
                 '''
@@ -113,4 +117,4 @@ def calculate(category):
 
 if __name__ == "__main__":
     with Pool(processes=cpu_count()) as pool:
-        pool.map(calculate, ['demo', 'hous', 'econ', 'soci'])
+        pool.map(calculate, ['demo', 'soci', 'econ', 'hous'])
