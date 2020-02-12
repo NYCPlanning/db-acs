@@ -69,13 +69,10 @@ def pivot_output(category):
     result.loc[result.p == 100,'z'] = np.nan
 
     result.loc[result.e==0, 'c'] = np.nan
-    result.loc[result.e==0, 'm'] = np.nan
+    result.loc[(result.e==0 & ~result.variable.isin(base_variables)), 'm'] = np.nan
+    result.loc[(result.e==0 & result.variable.isin(base_variables) & result.m.isna()), 'm'] = 0
     result.loc[result.e==0, 'p'] = np.nan
     result.loc[result.e==0, 'z'] = np.nan
-
-    # result.loc[result.m.isna(), 'c'] = np.nan
-    # result.loc[result.m.isna(), 'p'] = np.nan
-    # result.loc[result.m.isna(), 'z'] = np.nan
 
     result.loc[result.geotype.isin(['Boro2010', 'City2010']) 
                 & result.variable.isin(base_variables) 

@@ -1,4 +1,3 @@
-import requests
 import pandas as pd
 import numpy as np
 import functools 
@@ -32,13 +31,7 @@ def get_median(buckets, row):
         F = int(row[orderedE[i]])
         W = buckets[ordered[i]][1] - buckets[ordered[i]][0]
         median = L + (N/2 - C)*W/F
-    
-    # double check top coding 
-    if median > list(buckets.values())[-1][0]: 
-        return list(buckets.values())[-1][0]
-    else: 
-        return median
-
+    return median
 
 def get_median_moe(buckets, row, DF=1.1):
     ordered = list(buckets.keys())
@@ -60,7 +53,7 @@ def get_median_moe(buckets, row, DF=1.1):
             lower_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_lower])
             upper_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_upper])
             
-            if lower_bin >= len(ordered)-1 or upper_bin >= len(ordered)-1:
+            if lower_bin >= len(ordered)-1:
                 return np.nan
             else:
                 if lower_bin == upper_bin:
@@ -72,15 +65,22 @@ def get_median_moe(buckets, row, DF=1.1):
                     upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
 
                 else:
+                    
                     A1_l = min(buckets[ordered[lower_bin]])
                     A2_l = min(buckets[ordered[lower_bin+1]])
                     C1_l = cumm_dist[lower_bin-1]
                     C2_l = cumm_dist[lower_bin]
 
-                    A1_u = min(buckets[ordered[upper_bin]])
-                    A2_u = min(buckets[ordered[upper_bin+1]])
-                    C1_u = cumm_dist[upper_bin-1]
-                    C2_u = cumm_dist[upper_bin]
+                    if upper_bin+1 >= len(ordered) - 1: 
+                        A1_u = min(buckets[ordered[upper_bin]])
+                        A2_u = A1_u
+                        C1_u = cumm_dist[upper_bin-1]
+                        C2_u = cumm_dist[upper_bin]
+                    else: 
+                        A1_u = min(buckets[ordered[upper_bin]])
+                        A2_u = min(buckets[ordered[upper_bin+1]])
+                        C1_u = cumm_dist[upper_bin-1]
+                        C2_u = cumm_dist[upper_bin]
 
                     lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
                     upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
@@ -96,18 +96,18 @@ if __name__ == "__main__":
     |____/|_____|_|  |_|\___/ 
 
     """
-    # df = pd.read_csv('data/demo_final.csv', index_col=False)
-    # df.columns = map(str.lower, df.columns)
-    # df['geoid'] = df['geo_id'].apply(format_geoid)
-    # df['geotype'] = df['geo_id'].apply(assign_geotype)
-    # df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+    df = pd.read_csv('data/demo_final.csv', index_col=False)
+    df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
-    # df.loc[df.geotype=='NTA2010','mdagee'] = df.apply(lambda row: get_median(mdage, row), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdagem'] = df.apply(lambda row: get_median_moe(mdage, row, DF=design_factor['mdage']), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdagec'] = df.apply(lambda row: get_c(row['mdagee'], row['mdagem']), axis=1)
-    # df['mdagez'] = np.nan
-    # df['mdagep'] = np.nan
-    # df.to_csv('data/demo_final1.csv', index=False)
+    df.loc[df.geotype=='NTA2010','mdagee'] = df.apply(lambda row: get_median(mdage, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdagem'] = df.apply(lambda row: get_median_moe(mdage, row, DF=design_factor['mdage']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdagec'] = df.apply(lambda row: get_c(row['mdagee'], row['mdagem']), axis=1)
+    df['mdagez'] = np.nan
+    df['mdagep'] = np.nan
+    df.to_csv('data/demo_final1.csv', index=False)
 
     """
      _____ ____ ___  _   _ 
@@ -192,66 +192,66 @@ if __name__ == "__main__":
     |  _  | |_| | |_| |___) |
     |_| |_|\___/ \___/|____/ 
     # """
-    # def hovacrtm(hovacue, vacsalee, vacsalem, hovacum):
-    #     if hovacue == 0:
-    #         return 0
-    #     elif vacsalee == 0:
-    #         return 0
-    #     elif vacsalem**2 - (vacsalee*hovacum/hovacue)**2 <0:
-    #         return math.sqrt(vacsalem**2 + (vacsalee*hovacum/hovacue)**2)/hovacue*100
-    #     else: 
-    #         return math.sqrt(vacsalem**2 - (vacsalee*hovacum/hovacue)**2)/hovacue*100
+    def hovacrtm(hovacue, vacsalee, vacsalem, hovacum):
+        if hovacue == 0:
+            return 0
+        elif vacsalee == 0:
+            return 0
+        elif vacsalem**2 - (vacsalee*hovacum/hovacue)**2 <0:
+            return math.sqrt(vacsalem**2 + (vacsalee*hovacum/hovacue)**2)/hovacue*100
+        else: 
+            return math.sqrt(vacsalem**2 - (vacsalee*hovacum/hovacue)**2)/hovacue*100
 
-    # df = pd.read_csv('data/hous_final.csv', index_col=False)
-    # df.columns = map(str.lower, df.columns)
-    # df['geoid'] = df['geo_id'].apply(format_geoid)
-    # df['geotype'] = df['geo_id'].apply(assign_geotype)
-    # df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+    df = pd.read_csv('data/hous_final.csv', index_col=False)
+    df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
     
-    # df.loc[df.geotype=='NTA2010','hovacrte'] = 100*df['vacsalee']/df['hovacue']
-    # df.loc[df.geotype=='NTA2010','hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
-    # df.loc[df.geotype=='NTA2010','hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
-    # df['hovacrtz'] = np.nan
-    # df['hovacrtp'] = np.nan
+    df.loc[df.geotype=='NTA2010','hovacrte'] = 100*df['vacsalee']/df['hovacue']
+    df.loc[df.geotype=='NTA2010','hovacrtm'] = df.apply(lambda row: hovacrtm(row['hovacue'], row['vacsalee'], row['vacsalem'], row['hovacum']), axis=1)
+    df.loc[df.geotype=='NTA2010','hovacrtc'] = df.apply(lambda row: get_c(row['hovacrte'], row['hovacrtm']), axis=1)
+    df['hovacrtz'] = np.nan
+    df['hovacrtp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','rntvacrte'] = 100*df['vacrnte']/df['rntvacue']
-    # df.loc[df.geotype=='NTA2010','rntvacrtm'] = df.apply(lambda row: hovacrtm(row['rntvacue'], row['vacrnte'], row['vacrntm'], row['rntvacum']), axis=1)
-    # df.loc[df.geotype=='NTA2010','rntvacrtc'] = df.apply(lambda row: get_c(row['rntvacrte'], row['rntvacrtm']), axis=1)
-    # df['rntvacrtz'] = np.nan
-    # df['rntvacrtp'] = np.nan
+    df.loc[df.geotype=='NTA2010','rntvacrte'] = 100*df['vacrnte']/df['rntvacue']
+    df.loc[df.geotype=='NTA2010','rntvacrtm'] = df.apply(lambda row: hovacrtm(row['rntvacue'], row['vacrnte'], row['vacrntm'], row['rntvacum']), axis=1)
+    df.loc[df.geotype=='NTA2010','rntvacrtc'] = df.apply(lambda row: get_c(row['rntvacrte'], row['rntvacrtm']), axis=1)
+    df['rntvacrtz'] = np.nan
+    df['rntvacrtp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','avghhsooce'] = df['popoochue']/df['oochu1e']
-    # df.loc[df.geotype=='NTA2010','avghhsoocm'] = (df['popoochum']**2 + (df['popoochue']*df['oochu4m']/df['oochu4e'])**2)**0.5/df['oochu4e']
-    # df.loc[df.geotype=='NTA2010','avghhsoocc'] = df.apply(lambda row: get_c(row['avghhsooce'], row['avghhsoocm']), axis=1)
-    # df['avghhsoocz'] = np.nan
-    # df['avghhsoocp'] = np.nan
+    df.loc[df.geotype=='NTA2010','avghhsooce'] = df['popoochue']/df['oochu1e']
+    df.loc[df.geotype=='NTA2010','avghhsoocm'] = (df['popoochum']**2 + (df['popoochue']*df['oochu4m']/df['oochu4e'])**2)**0.5/df['oochu4e']
+    df.loc[df.geotype=='NTA2010','avghhsoocc'] = df.apply(lambda row: get_c(row['avghhsooce'], row['avghhsoocm']), axis=1)
+    df['avghhsoocz'] = np.nan
+    df['avghhsoocp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','avghhsroce'] = df['poprtochue']/df['rochu1e']
-    # df.loc[df.geotype=='NTA2010','avghhsrocm'] = (df['poprtochum']**2 + (df['poprtochue']*df['rochu2m']/df['rochu2e'])**2)**0.5/df['rochu2e']
-    # df.loc[df.geotype=='NTA2010','avghhsrocc'] = df.apply(lambda row: get_c(row['avghhsroce'], row['avghhsrocm']), axis=1)
-    # df['avghhsrocz'] = np.nan
-    # df['avghhsrocp'] = np.nan
+    df.loc[df.geotype=='NTA2010','avghhsroce'] = df['poprtochue']/df['rochu1e']
+    df.loc[df.geotype=='NTA2010','avghhsrocm'] = (df['poprtochum']**2 + (df['poprtochue']*df['rochu2m']/df['rochu2e'])**2)**0.5/df['rochu2e']
+    df.loc[df.geotype=='NTA2010','avghhsrocc'] = df.apply(lambda row: get_c(row['avghhsroce'], row['avghhsrocm']), axis=1)
+    df['avghhsrocz'] = np.nan
+    df['avghhsrocp'] = np.nan
 
 
-    # df.loc[df.geotype=='NTA2010','mdrmse'] = df.apply(lambda row: get_median(mdrms, row), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, DF=design_factor['mdrms']), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
-    # df['mdrmsz'] = np.nan
-    # df['mdrmsp'] = np.nan
+    df.loc[df.geotype=='NTA2010','mdrmse'] = df.apply(lambda row: get_median(mdrms, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, DF=design_factor['mdrms']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
+    df['mdrmsz'] = np.nan
+    df['mdrmsp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','mdgre'] = df.apply(lambda row: get_median(mdgr, row), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdgrm'] = df.apply(lambda row: get_median_moe(mdgr, row, DF=design_factor['mdgr']), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdgrc'] = df.apply(lambda row: get_c(row['mdgre'], row['mdgrm']), axis=1)
-    # df['mdgrz'] = np.nan
-    # df['mdgrp'] = np.nan
+    df.loc[df.geotype=='NTA2010','mdgre'] = df.apply(lambda row: get_median(mdgr, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdgrm'] = df.apply(lambda row: get_median_moe(mdgr, row, DF=design_factor['mdgr']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdgrc'] = df.apply(lambda row: get_c(row['mdgre'], row['mdgrm']), axis=1)
+    df['mdgrz'] = np.nan
+    df['mdgrp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','mdvle'] = df.apply(lambda row: get_median(mdvl, row), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdvlm'] = df.apply(lambda row: get_median_moe(mdvl, row, DF=design_factor['mdvl']), axis=1)
-    # df.loc[df.geotype=='NTA2010','mdvlc'] = df.apply(lambda row: get_c(row['mdvle'], row['mdvlm']), axis=1)
-    # df['mdvlz'] = np.nan
-    # df['mdvlp'] = np.nan
+    df.loc[df.geotype=='NTA2010','mdvle'] = df.apply(lambda row: get_median(mdvl, row), axis=1)
+    df.loc[df.geotype=='NTA2010','mdvlm'] = df.apply(lambda row: get_median_moe(mdvl, row, DF=design_factor['mdvl']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdvlc'] = df.apply(lambda row: get_c(row['mdvle'], row['mdvlm']), axis=1)
+    df['mdvlz'] = np.nan
+    df['mdvlp'] = np.nan
     
-    # df.to_csv('data/hous_final1.csv', index=False)
+    df.to_csv('data/hous_final1.csv', index=False)
 
 
     """
@@ -261,21 +261,21 @@ if __name__ == "__main__":
      ___) | |_| | |___ | | 
     |____/ \___/ \____|___|
     """
-    # df = pd.read_csv('data/soci_final.csv', index_col=False)
-    # df.columns = map(str.lower, df.columns)
-    # df['geoid'] = df['geo_id'].apply(format_geoid)
-    # df['geotype'] = df['geo_id'].apply(assign_geotype)
-    # df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
+    df = pd.read_csv('data/soci_final.csv', index_col=False)
+    df.columns = map(str.lower, df.columns)
+    df['geoid'] = df['geo_id'].apply(format_geoid)
+    df['geotype'] = df['geo_id'].apply(assign_geotype)
+    df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
-    # df.loc[df.geotype=='NTA2010','avghhsze'] = df['hhpop1e']/df['hh1e']
-    # df.loc[df.geotype=='NTA2010','avghhszm'] = (df['hhpop1m']**2 + (df['hh4m']*df['hhpop1e']/df['hh4e'])**2)**0.5/df['hh4e']
-    # df.loc[df.geotype=='NTA2010','avghhszc'] = df.apply(lambda row: get_c(row['avghhsze'], row['avghhszm']), axis=1)
-    # df['avghhszz'] = np.nan
-    # df['avghhszp'] = np.nan
+    df.loc[df.geotype=='NTA2010','avghhsze'] = df['hhpop1e']/df['hh1e']
+    df.loc[df.geotype=='NTA2010','avghhszm'] = (df['hhpop1m']**2 + (df['hh4m']*df['hhpop1e']/df['hh4e'])**2)**0.5/df['hh4e']
+    df.loc[df.geotype=='NTA2010','avghhszc'] = df.apply(lambda row: get_c(row['avghhsze'], row['avghhszm']), axis=1)
+    df['avghhszz'] = np.nan
+    df['avghhszp'] = np.nan
 
-    # df.loc[df.geotype=='NTA2010','avgfmsze'] = df['popinfmse']/df['fam1e']
-    # df.loc[df.geotype=='NTA2010','avgfmszm'] = (df['popinfmsm']**2 + (df['fam3m']*df['popinfmse']/df['fam3e'])**2)**0.5/df['fam3e']
-    # df.loc[df.geotype=='NTA2010','avgfmszc'] = df.apply(lambda row: get_c(row['avgfmsze'], row['avgfmszm']), axis=1)
-    # df['avgfmszz'] = np.nan
-    # df['avgfmszp'] = np.nan
-    # df.to_csv('data/soci_final1.csv', index=False)
+    df.loc[df.geotype=='NTA2010','avgfmsze'] = df['popinfmse']/df['fam1e']
+    df.loc[df.geotype=='NTA2010','avgfmszm'] = (df['popinfmsm']**2 + (df['fam3m']*df['popinfmse']/df['fam3e'])**2)**0.5/df['fam3e']
+    df.loc[df.geotype=='NTA2010','avgfmszc'] = df.apply(lambda row: get_c(row['avgfmsze'], row['avgfmszm']), axis=1)
+    df['avgfmszz'] = np.nan
+    df['avgfmszp'] = np.nan
+    df.to_csv('data/soci_final1.csv', index=False)
