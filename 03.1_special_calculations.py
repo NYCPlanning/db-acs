@@ -71,7 +71,7 @@ def get_median_moe(buckets, row, DF=1.1):
                     C1_l = cumm_dist[lower_bin-1]
                     C2_l = cumm_dist[lower_bin]
 
-                    if upper_bin+1 >= len(ordered) - 1: 
+                    if upper_bin+1 > len(ordered) - 1: 
                         A1_u = min(buckets[ordered[upper_bin]])
                         A2_u = A1_u
                         C1_u = cumm_dist[upper_bin-1]
