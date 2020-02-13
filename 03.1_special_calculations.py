@@ -33,59 +33,63 @@ def get_median(buckets, row):
         median = L + (N/2 - C)*W/F
     return median
 
-def get_median_moe(buckets, row, DF=1.1):
-    ordered = list(buckets.keys())
-    orderedE = [i+'e' for i in ordered]
-    B = row[orderedE].sum()
-    if B == 0: 
+def get_median_moe(buckets, row, median, DF=1.1):
+    md = row[median+'e']
+    if md >= list(buckets.values())[-1][0]:
         return np.nan
-    else:
-        cumm_dist = list(np.cumsum(row[orderedE])/B*100)
-
-        se_50 = DF*(((93/(7*B))*2500))**0.5
-        
-        if se_50 >= 50:
+    else: 
+        ordered = list(buckets.keys())
+        orderedE = [i+'e' for i in ordered]
+        B = row[orderedE].sum()
+        if B == 0: 
             return np.nan
-        else: 
-            p_lower = 50 - se_50
-            p_upper = 50 + se_50
+        else:
+            cumm_dist = list(np.cumsum(row[orderedE])/B*100)
+
+            se_50 = DF*(((93/(7*B))*2500))**0.5
             
-            lower_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_lower])
-            upper_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_upper])
-            
-            if lower_bin >= len(ordered)-1:
+            if se_50 >= 50:
                 return np.nan
             else:
-                if lower_bin == upper_bin:
-                    A1 = min(buckets[ordered[lower_bin]])
-                    A2 = min(buckets[ordered[lower_bin+1]])
-                    C1 = cumm_dist[lower_bin-1]
-                    C2 = cumm_dist[lower_bin]
-                    lowerbound = (p_lower - C1)*(A2-A1)/(C2-C1) + A1 
-                    upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
-
+                p_lower = 50 - se_50
+                p_upper = 50 + se_50
+                
+                lower_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_lower])
+                upper_bin = min([cumm_dist.index(i) for i in cumm_dist if i > p_upper])
+                
+                if lower_bin >= len(ordered)-1:
+                    return np.nan
                 else:
-                    
-                    A1_l = min(buckets[ordered[lower_bin]])
-                    A2_l = min(buckets[ordered[lower_bin+1]])
-                    C1_l = cumm_dist[lower_bin-1]
-                    C2_l = cumm_dist[lower_bin]
+                    if lower_bin == upper_bin:
+                        A1 = min(buckets[ordered[lower_bin]])
+                        A2 = min(buckets[ordered[lower_bin+1]])
+                        C1 = cumm_dist[lower_bin-1]
+                        C2 = cumm_dist[lower_bin]
+                        lowerbound = (p_lower - C1)*(A2-A1)/(C2-C1) + A1 
+                        upperbound = (p_upper - C1)*(A2-A1)/(C2-C1) + A1
 
-                    if upper_bin+1 > len(ordered) - 1: 
-                        A1_u = min(buckets[ordered[upper_bin]])
-                        A2_u = A1_u
-                        C1_u = cumm_dist[upper_bin-1]
-                        C2_u = cumm_dist[upper_bin]
-                    else: 
-                        A1_u = min(buckets[ordered[upper_bin]])
-                        A2_u = min(buckets[ordered[upper_bin+1]])
-                        C1_u = cumm_dist[upper_bin-1]
-                        C2_u = cumm_dist[upper_bin]
+                    else:
+                        
+                        A1_l = min(buckets[ordered[lower_bin]])
+                        A2_l = min(buckets[ordered[lower_bin+1]])
+                        C1_l = cumm_dist[lower_bin-1]
+                        C2_l = cumm_dist[lower_bin]
 
-                    lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
-                    upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
+                        if upper_bin+1 > len(ordered) - 1: 
+                            A1_u = min(buckets[ordered[upper_bin]])
+                            A2_u = A1_u
+                            C1_u = cumm_dist[upper_bin-1]
+                            C2_u = cumm_dist[upper_bin]
+                        else: 
+                            A1_u = min(buckets[ordered[upper_bin]])
+                            A2_u = min(buckets[ordered[upper_bin+1]])
+                            C1_u = cumm_dist[upper_bin-1]
+                            C2_u = cumm_dist[upper_bin]
 
-                return (upperbound - lowerbound)*1.645/2
+                        lowerbound = (p_lower - C1_l)*(A2_l-A1_l)/(C2_l-C1_l) + A1_l 
+                        upperbound = (p_upper - C1_u)*(A2_u-A1_u)/(C2_u-C1_u) + A1_u
+
+                    return (upperbound - lowerbound)*1.645/2
 
 if __name__ == "__main__":
     """
@@ -103,7 +107,7 @@ if __name__ == "__main__":
     df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
     df.loc[df.geotype=='NTA2010','mdagee'] = df.apply(lambda row: get_median(mdage, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdagem'] = df.apply(lambda row: get_median_moe(mdage, row, DF=design_factor['mdage']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdagem'] = df.apply(lambda row: get_median_moe(mdage, row, 'mdage', DF=design_factor['mdage']), axis=1)
     df.loc[df.geotype=='NTA2010','mdagec'] = df.apply(lambda row: get_c(row['mdagee'], row['mdagem']), axis=1)
     df['mdagez'] = np.nan
     df['mdagep'] = np.nan
@@ -123,37 +127,37 @@ if __name__ == "__main__":
     df['geogname'] = df.apply(lambda row: assign_geogname(row['geotype'],row['name'],row['geoid']),  axis=1)
 
     df.loc[df.geotype=='NTA2010','mdhhince'] = df.apply(lambda row: get_median(mdhhinc, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, DF=design_factor['mdhhinc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdhhincm'] = df.apply(lambda row: get_median_moe(mdhhinc, row, 'mdhhinc', DF=design_factor['mdhhinc']), axis=1)
     df.loc[df.geotype=='NTA2010','mdhhincc'] = df.apply(lambda row: get_c(row['mdhhince'], row['mdhhincm']), axis=1)
     df['mdhhincz'] = np.nan
     df['mdhhincp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdfamince'] = df.apply(lambda row: get_median(mdfaminc, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdfamincm'] = df.apply(lambda row: get_median_moe(mdfaminc, row, DF=design_factor['mdfaminc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdfamincm'] = df.apply(lambda row: get_median_moe(mdfaminc, row, 'mdfaminc', DF=design_factor['mdfaminc']), axis=1)
     df.loc[df.geotype=='NTA2010','mdfamincc'] = df.apply(lambda row: get_c(row['mdfamince'], row['mdfamincm']), axis=1)
     df['mdfamincz'] = np.nan
     df['mdfamincp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdnfince'] = df.apply(lambda row: get_median(mdnfinc, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, DF=design_factor['mdnfinc']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdnfincm'] = df.apply(lambda row: get_median_moe(mdnfinc, row, 'mdnfinc', DF=design_factor['mdnfinc']), axis=1)
     df.loc[df.geotype=='NTA2010','mdnfincc'] = df.apply(lambda row: get_c(row['mdnfince'], row['mdnfincm']), axis=1)
     df['mdnfincz'] = np.nan
     df['mdnfincp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdewrke'] = df.apply(lambda row: get_median(mdewrk, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdewrkm'] = df.apply(lambda row: get_median_moe(mdewrk, row, DF=design_factor['mdewrk']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdewrkm'] = df.apply(lambda row: get_median_moe(mdewrk, row, 'mdewrk', DF=design_factor['mdewrk']), axis=1)
     df.loc[df.geotype=='NTA2010','mdewrkc'] = df.apply(lambda row: get_c(row['mdewrke'], row['mdewrkm']), axis=1)
     df['mdewrkz'] = np.nan
     df['mdewrkp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdemftwrke'] = df.apply(lambda row: get_median(mdemftwrk, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, DF=design_factor['mdemftwrk']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdemftwrkm'] = df.apply(lambda row: get_median_moe(mdemftwrk, row, 'mdemftwrk', DF=design_factor['mdemftwrk']), axis=1)
     df.loc[df.geotype=='NTA2010','mdemftwrkc'] = df.apply(lambda row: get_c(row['mdemftwrke'], row['mdemftwrkm']), axis=1)
     df['mdemftwrkz'] = np.nan
     df['mdemftwrkp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdefftwrke'] = df.apply(lambda row: get_median(mdefftwrk, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdefftwrkm'] = df.apply(lambda row: get_median_moe(mdefftwrk, row, DF=design_factor['mdefftwrk']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdefftwrkm'] = df.apply(lambda row: get_median_moe(mdefftwrk, row, 'mdefftwrk', DF=design_factor['mdefftwrk']), axis=1)
     df.loc[df.geotype=='NTA2010','mdefftwrkc'] = df.apply(lambda row: get_c(row['mdefftwrke'], row['mdefftwrkm']), axis=1)
     df['mdefftwrkz'] = np.nan
     df['mdefftwrkp'] = np.nan
@@ -234,19 +238,19 @@ if __name__ == "__main__":
 
 
     df.loc[df.geotype=='NTA2010','mdrmse'] = df.apply(lambda row: get_median(mdrms, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, DF=design_factor['mdrms']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdrmsm'] = df.apply(lambda row: get_median_moe(mdrms, row, 'mdrms', DF=design_factor['mdrms']), axis=1)
     df.loc[df.geotype=='NTA2010','mdrmsc'] = df.apply(lambda row: get_c(row['mdrmse'], row['mdrmsm']), axis=1)
     df['mdrmsz'] = np.nan
     df['mdrmsp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdgre'] = df.apply(lambda row: get_median(mdgr, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdgrm'] = df.apply(lambda row: get_median_moe(mdgr, row, DF=design_factor['mdgr']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdgrm'] = df.apply(lambda row: get_median_moe(mdgr, row, 'mdgr', DF=design_factor['mdgr']), axis=1)
     df.loc[df.geotype=='NTA2010','mdgrc'] = df.apply(lambda row: get_c(row['mdgre'], row['mdgrm']), axis=1)
     df['mdgrz'] = np.nan
     df['mdgrp'] = np.nan
 
     df.loc[df.geotype=='NTA2010','mdvle'] = df.apply(lambda row: get_median(mdvl, row), axis=1)
-    df.loc[df.geotype=='NTA2010','mdvlm'] = df.apply(lambda row: get_median_moe(mdvl, row, DF=design_factor['mdvl']), axis=1)
+    df.loc[df.geotype=='NTA2010','mdvlm'] = df.apply(lambda row: get_median_moe(mdvl, row, 'mdvl', DF=design_factor['mdvl']), axis=1)
     df.loc[df.geotype=='NTA2010','mdvlc'] = df.apply(lambda row: get_c(row['mdvle'], row['mdvlm']), axis=1)
     df['mdvlz'] = np.nan
     df['mdvlp'] = np.nan
